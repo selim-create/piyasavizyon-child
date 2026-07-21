@@ -10099,233 +10099,67 @@ html body:not(.home):not(.front-page) .pv-inner-masthead-wrap ins{
   html body.single .pv-single-card{padding:20px!important;}
 }
 
-/* === v2.72: 14-item revision – masthead sizing, content feed, z-index, single layout, mobile responsive === */
+/* === v2.74: safe reimplementation of masthead, single, and mobile layout fixes === */
 
-/* --- Issue 1: Masthead height adapts to creative size (970×90 / 728×90 must not force 250px gap) ---
-   Container already uses flexbox centering; replace fixed 250px with auto + sensible minimum.
-   JS (normalizeMasthead) adds .pv-mh-970x250 / .pv-mh-970x90 to the wrapper after load. */
-@media(min-width:981px){
-  html body .pv-hero-area > .ad-970.pv-ad-slot,
-  html body .ad-970.pv-ad-slot,
-  html body .pv-header-masthead{
-    height:auto!important;
-    min-height:90px!important;
-  }
-  html body .ad-970.pv-ad-slot .pv-widget,
-  html body .ad-970.pv-ad-slot .widget,
-  html body .ad-970.pv-ad-slot .textwidget,
-  html body .ad-970.pv-ad-slot .custom-html-widget,
-  html body .ad-970.pv-ad-slot .adbox,
-  html body .ad-970.pv-ad-slot [id^="div-gpt"],
-  html body .ad-970.pv-ad-slot [id*="masthead"],
-  html body #div-gpt-970x250-masthead{
-    height:auto!important;
-    min-height:90px!important;
-  }
-  /* Allow larger creatives to expand naturally */
-  html body .ad-970.pv-ad-slot iframe,
-  html body .ad-970.pv-ad-slot img,
-  html body #div-gpt-970x250-masthead iframe,
-  html body #div-gpt-970x250-masthead img{
-    max-height:none!important;
-  }
-  /* After JS classifies the creative, snap the minimum to the actual slot size */
-  html body .pv-mh-970x250 > .ad-970.pv-ad-slot,
-  html body .pv-mh-970x250.ad-970.pv-ad-slot,
-  html body .pv-mh-970x250 .pv-header-masthead{
-    min-height:250px!important;
-  }
-  html body .pv-mh-970x90 > .ad-970.pv-ad-slot,
-  html body .pv-mh-970x90.ad-970.pv-ad-slot,
-  html body .pv-mh-970x90 .pv-header-masthead{
-    min-height:90px!important;
-    height:auto!important;
-  }
-}
-
-/* --- Issues 4 & 10: Single post head/meta/image stacking – title+meta render above featured image --- */
-html body.single .pv-single-card,
-html body.single article.pv-single-card{
-  position:relative!important;
-  z-index:1!important;
+/* 1 + 5: Keep masthead ads fully visible across 970x90 / 728x90 / 970x250 and avoid pageskin collisions. */
+html body .pv-inner-masthead-wrap{
+  width:min(970px,calc(100% - 36px))!important;
+  max-width:100%!important;
+  display:grid!important;
+  justify-items:center!important;
+  align-items:center!important;
+  gap:14px!important;
+  margin:14px auto 22px!important;
   overflow:visible!important;
 }
-html body.single .pv-single-head,
-html body.single .pv-inner-title{
-  position:relative!important;
-  z-index:2!important;
+html body .pv-header-masthead.ad-970,
+html body .ad-970.pv-header-masthead,
+html body .pv-header-masthead.pv-ad-slot{
+  width:min(970px,100%)!important;
+  max-width:970px!important;
+  min-height:90px!important;
+  height:auto!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  margin:0 auto!important;
+  padding:0!important;
+  overflow:visible!important;
 }
-html body.single .pv-entry-meta{
-  position:relative!important;
-  z-index:2!important;
+html body .pv-header-masthead .pv-widget,
+html body .pv-header-masthead .widget,
+html body .pv-header-masthead .textwidget,
+html body .pv-header-masthead .custom-html-widget,
+html body .pv-header-masthead .adbox,
+html body .pv-header-masthead [id^="div-gpt"]{
+  width:100%!important;
+  max-width:970px!important;
+  min-height:90px!important;
+  height:auto!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  margin:0 auto!important;
+  overflow:visible!important;
 }
-
-/* --- Issue 5: Pageskin/skyscraper z-index guard and narrow-viewport hide --- */
-html body .pv-pageskin,
-html body .pv-pageskin-left,
-html body .pv-pageskin-right,
-html body .ad-pageskin{
-  z-index:100!important;
+html body .pv-header-masthead iframe,
+html body .pv-header-masthead img,
+html body .pv-header-masthead ins{
+  display:block!important;
+  width:auto!important;
+  max-width:100%!important;
+  height:auto!important;
+  max-height:none!important;
+  margin:0 auto!important;
+  object-fit:contain!important;
 }
-@media(max-width:1360px){
-  html body .pv-pageskin,
-  html body .pv-pageskin-left,
-  html body .pv-pageskin-right,
-  html body .ad-pageskin{
+@media(max-width:1319px){
+  html body .pv-pageskin{
     display:none!important;
   }
 }
 
-/* --- Issue 6: Mobile masthead visibility guard (belt+suspenders over v2.71 flow fix) --- */
-@media(max-width:980px){
-  html body .ad-mobile-masthead.pv-ad-slot{
-    position:relative!important;
-    z-index:10!important;
-  }
-}
-
-/* --- Issue 7: Mobile quad-headline grid – prevent horizontal overflow and clipping --- */
-@media(max-width:980px){
-  html body .top-showcase-v73 .headline-right{
-    overflow:hidden!important;
-    max-width:100%!important;
-    width:100%!important;
-    box-sizing:border-box!important;
-  }
-  html body .top-showcase-v73 .headline-grid{
-    display:grid!important;
-    grid-template-columns:1fr 1fr!important;
-    gap:8px!important;
-    width:100%!important;
-    max-width:100%!important;
-    overflow:hidden!important;
-    box-sizing:border-box!important;
-  }
-  html body .top-showcase-v73 .headline-grid .story{
-    min-width:0!important;
-    max-width:100%!important;
-    width:100%!important;
-    overflow:hidden!important;
-    box-sizing:border-box!important;
-  }
-  html body .top-showcase-v73 .headline-grid .story h3{
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
-    display:-webkit-box!important;
-    -webkit-line-clamp:3!important;
-    -webkit-box-orient:vertical!important;
-  }
-}
-@media(max-width:480px){
-  html body .top-showcase-v73 .headline-grid{
-    grid-template-columns:1fr!important;
-  }
-}
-
-/* --- Issue 8: Mobile 300×250 banner – center and prevent right-overflow --- */
-@media(max-width:980px){
-  html body .ad-300x250.pv-ad-slot,
-  html body .sidebar .ad-300x250.pv-ad-slot,
-  html body .pv-home-sidebar .ad-300x250.pv-ad-slot,
-  html body .pv-sidebar-gam .ad-300x250.pv-ad-slot{
-    display:flex!important;
-    justify-content:center!important;
-    align-items:center!important;
-    margin-left:auto!important;
-    margin-right:auto!important;
-    width:min(336px,100%)!important;
-    max-width:336px!important;
-    overflow:hidden!important;
-    float:none!important;
-  }
-  html body .ad-300x250.pv-ad-slot iframe,
-  html body .ad-300x250.pv-ad-slot img{
-    margin-left:auto!important;
-    margin-right:auto!important;
-    display:block!important;
-    max-width:100%!important;
-  }
-}
-
-/* --- Issue 9: Mobile content-area stacking – no z-index wars between panels --- */
-@media(max-width:980px){
-  html body .panel,
-  html body .pv-category-block,
-  html body .news-list,
-  html body .cards-grid,
-  html body .slider{
-    position:relative!important;
-    z-index:1!important;
-    clear:both!important;
-    overflow:visible!important;
-  }
-}
-
-/* --- Issue 10: Mobile single.php – ad slots visible, content areas not overlapping --- */
-@media(max-width:980px){
-  html body.single .pv-inner-masthead-wrap{
-    position:relative!important;
-    z-index:2!important;
-    clear:both!important;
-    overflow:visible!important;
-  }
-  html body.single .pv-single-card{
-    overflow:visible!important;
-  }
-  html body.single .pv-inner-sidebar,
-  html body.single aside.sidebar{
-    position:relative!important;
-    z-index:1!important;
-    clear:both!important;
-    overflow:visible!important;
-  }
-}
-
-/* --- Issue 11: Headline-grid story-cat hover contrast – amber on hover instead of blue-on-blue --- */
-/* v2.66 set the same flat blue for normal + hover; hover is unreadable on dark-gradient cards. */
-html body.home .top-showcase .headline-grid .story:hover .story-cat,
-html body.home .top-showcase .headline-grid .story:focus .story-cat{
-  background:#ffb000!important;
-  color:#111827!important;
-  border-color:rgba(255,178,0,.28)!important;
-  text-shadow:none!important;
-}
-
-/* --- Issues 12 & 13: Mobile IPO / market grid – prevent right-overflow and horizontal scroll --- */
-@media(max-width:640px){
-  html body .ipo-panel.pv-ipo-original{
-    overflow-x:auto!important;
-    max-width:100%!important;
-    box-sizing:border-box!important;
-  }
-  html body .pv-ipo-original-list{
-    max-width:100%!important;
-    overflow-x:auto!important;
-    box-sizing:border-box!important;
-  }
-  html body .pv-ipo-row{
-    min-width:0!important;
-    box-sizing:border-box!important;
-  }
-  html body .widget-grid.pv-market-table-grid{
-    grid-template-columns:1fr!important;
-  }
-  html body .widget-grid.stock-bottom{
-    grid-template-columns:1fr!important;
-  }
-  html body .loan-grid{
-    grid-template-columns:1fr 1fr!important;
-  }
-}
-@media(max-width:400px){
-  html body .loan-grid{
-    grid-template-columns:1fr!important;
-  }
-}
-
-/* === v2.73 six-critical-fixes override layer === */
-
-/* Single post: force natural block flow and prevent any overlap with featured image/content. */
+/* 4 + 5 + 10: Keep single headline/meta/image/content in normal document flow and center sidebar ads safely. */
 html body.single .pv-single-layout,
 html body.single .pv-single-card,
 html body.single .pv-single-content,
@@ -10342,117 +10176,149 @@ html body.single .pv-entry-content > .pv-inner-featured{
   bottom:auto!important;
   left:auto!important;
   float:none!important;
-  clear:none!important;
+  clear:both!important;
   transform:none!important;
+}
+html body.single .pv-single-content{
+  display:block!important;
+  overflow:visible!important;
+}
+html body.single .pv-single-head,
+html body.single .pv-content-head{
+  margin:0 0 18px!important;
   z-index:auto!important;
 }
-html body.single .pv-single-card{padding:28px!important;overflow:visible!important;}
-html body.single .pv-single-head,
-html body.single .pv-content-head{display:block!important;margin:0 0 18px!important;}
-html body.single .pv-single-title{margin:0 0 14px!important;}
-html body.single .pv-entry-meta{margin:0 0 16px!important;}
-html body.single .pv-single-excerpt{margin:0 0 18px!important;}
+html body.single .pv-single-title,
+html body.single .pv-inner-title{
+  max-width:100%!important;
+}
 html body.single .pv-inner-featured,
 html body.single .pv-entry-content > .pv-inner-featured{
-  display:block!important;
-  margin:0 0 24px!important;
-  margin-top:0!important;
-  overflow:hidden!important;
-  border-radius:18px!important;
+  margin:0 0 26px!important;
+  z-index:0!important;
 }
-html body.single .pv-inner-featured img{
-  display:block!important;
-  width:100%!important;
-  height:auto!important;
+html body.single .pv-inner-featured img,
+html body.single .pv-entry-content img,
+html body.single .pv-entry-content iframe,
+html body.single .pv-entry-content table{
   max-width:100%!important;
 }
-
-/* Masthead: desktop must not crop right side; mobile masthead must be visible and centered. */
-html body .pv-inner-masthead-wrap{
-  display:grid!important;
-  justify-items:center!important;
-  align-items:center!important;
-  gap:0!important;
-  overflow:visible!important;
+html body.single .pv-single-layout aside.sidebar .pv-ad-slot{
+  margin-left:auto!important;
+  margin-right:auto!important;
 }
-html body .pv-header-masthead.pv-ad-slot{
-  width:min(970px,100%)!important;
-  max-width:970px!important;
-  min-height:90px!important;
-  height:auto!important;
-  margin:0 auto 16px!important;
-  overflow:visible!important;
-}
-html body .pv-header-masthead.pv-ad-slot iframe,
-html body .pv-header-masthead.pv-ad-slot img,
-html body .pv-header-masthead.pv-ad-slot ins{
-  display:block!important;
-  margin:0 auto!important;
-  max-width:100%!important;
+html body.single .pv-single-layout aside.sidebar .ad-300x250,
+html body.single .pv-single-layout aside.sidebar .ad-300x600{
+  width:min(100%,336px)!important;
+  max-width:336px!important;
   height:auto!important;
 }
-html body .pv-ad-desktop{display:flex!important;}
-html body .pv-ad-mobile{display:none!important;}
 
+/* 7 + 8 + 9 + 11 + 12 + 13: mobile home/feed alignment, centered 300x250, readable hover chip, and no right drift. */
+html body.home .top-showcase .headline-grid .story:hover .story-cat,
+html body.home .top-showcase .headline-grid .story:focus .story-cat{
+  background:#ffb000!important;
+  color:#111827!important;
+  border-color:rgba(255,176,0,.28)!important;
+}
 @media(max-width:980px){
-  html,body{max-width:100%;overflow-x:hidden;}
-
-  /* Mobile ad visibility split */
-  html body .pv-ad-desktop{display:none!important;}
+  html body .wrap{
+    width:min(100% - 24px,1200px)!important;
+    max-width:100%!important;
+  }
+  html body .pv-ad-desktop{
+    display:none!important;
+  }
   html body .pv-ad-mobile{
     display:flex!important;
-    width:100%!important;
     justify-content:center!important;
+    width:100%!important;
   }
   html body .ad-mobile-masthead.pv-ad-slot{
-    display:flex!important;
     width:min(336px,100%)!important;
     max-width:336px!important;
     min-height:100px!important;
-    margin:0 auto 16px!important;
-    align-items:center!important;
-    justify-content:center!important;
+    margin:0 auto 18px!important;
     overflow:visible!important;
   }
-  html body .ad-mobile-masthead.pv-ad-slot iframe,
-  html body .ad-mobile-masthead.pv-ad-slot img,
-  html body .ad-mobile-masthead.pv-ad-slot ins{
-    display:block!important;
-    max-width:100%!important;
-    height:auto!important;
-    margin:0 auto!important;
-  }
-
-  /* Prevent header overlap on first content blocks (all templates). */
-  html body .pv-header-v260 + .pv-hero-area,
-  html body .pv-header-v260 + .pv-inner-masthead-wrap,
-  html body .pv-header-v260 + .wrap.main,
-  html body .pv-header-v260 + .pv-inner-layout{
-    margin-top:0!important;
-  }
-
-  /* Mobile homepage/content right shift fix. */
-  html body .wrap{width:calc(100% - 24px)!important;max-width:100%!important;}
-  html body .pv-hero-area,
-  html body .top-showcase,
   html body .headline-right,
   html body .headline-grid,
   html body .main,
   html body .content,
-  html body .panel{max-width:100%!important;min-width:0!important;}
-  html body .headline-grid{grid-template-columns:1fr!important;gap:12px!important;}
-  html body .headline-grid .story{
-    width:100%!important;
+  html body .panel,
+  html body .news-list,
+  html body .cards-grid,
+  html body .slider{
     min-width:0!important;
-    margin:0!important;
-    transform:none!important;
+    max-width:100%!important;
   }
-
-  /* Single on mobile: keep sidebar below content full width. */
-  html body.single .pv-single-layout{grid-template-columns:1fr!important;}
-  html body.single .pv-single-layout > aside.sidebar{
+  html body .headline-grid{
+    grid-template-columns:1fr 1fr!important;
+    height:auto!important;
+    gap:12px!important;
+  }
+  html body .headline-grid .story{
+    min-width:0!important;
+    width:100%!important;
+    margin:0!important;
+    overflow:hidden!important;
+  }
+  html body .panel,
+  html body .news-list,
+  html body .cards-grid,
+  html body .slider{
+    position:relative!important;
+    z-index:1!important;
+  }
+  html body .ad-300x250.pv-ad-slot{
+    width:min(336px,100%)!important;
+    max-width:336px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    margin:0 auto!important;
+  }
+  html body .ad-300x250.pv-ad-slot .pv-widget,
+  html body .ad-300x250.pv-ad-slot .widget,
+  html body .ad-300x250.pv-ad-slot .textwidget,
+  html body .ad-300x250.pv-ad-slot .custom-html-widget,
+  html body .ad-300x250.pv-ad-slot .adbox,
+  html body .ad-300x250.pv-ad-slot [id^="div-gpt"]{
+    width:100%!important;
+    max-width:336px!important;
+  }
+  html body.single .pv-single-layout{
+    grid-template-columns:1fr!important;
+    gap:24px!important;
+  }
+  html body.single .pv-single-card{
+    padding:22px!important;
+  }
+  html body.single .pv-single-layout aside.sidebar{
     width:100%!important;
     max-width:none!important;
-    position:static!important;
+    order:2!important;
+  }
+}
+@media(max-width:640px){
+  html body .pv-market-table-grid,
+  html body .widget-grid.stock-bottom{
+    grid-template-columns:1fr!important;
+  }
+  html body .ipo-panel,
+  html body .pv-ipo-shortcode,
+  html body .pv-ipo-original-list{
+    max-width:100%!important;
+    overflow-x:auto!important;
+    box-sizing:border-box!important;
+  }
+  html body .pv-ipo-row{
+    min-width:0!important;
+    box-sizing:border-box!important;
+  }
+}
+@media(max-width:480px){
+  html body .headline-grid{
+    grid-template-columns:1fr!important;
   }
 }
