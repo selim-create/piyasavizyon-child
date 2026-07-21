@@ -846,3 +846,59 @@ html body .pv-header-v260 .pv-h-rail-link i:first-child{display:none!important;}
     margin-top:16px!important;
   }
 }
+
+/* === v2.74: safe header stacking + mobile sticky reimplementation === */
+
+/* 3: Keep the rail above the market board and keep dropdowns clickable in normal flow. */
+html body .pv-header-v260{
+  overflow:visible!important;
+}
+html body .pv-header-v260 .pv-h-command{
+  position:relative!important;
+  z-index:10030!important;
+}
+html body .pv-header-v260 .pv-h-identity{
+  position:relative!important;
+  z-index:10060!important;
+}
+html body .pv-header-v260 .pv-h-rail{
+  position:relative!important;
+  z-index:10090!important;
+}
+html body .pv-header-v260 .pv-h-market{
+  position:relative!important;
+  z-index:10020!important;
+}
+html body .pv-header-v260 .pv-h-identity-submenu,
+html body .pv-header-v260 .pv-h-submenu{
+  z-index:10120!important;
+}
+
+/* 6 + 14: On mobile keep the identity bar sticky in normal document flow so masthead/content stay below it. */
+@media(max-width:980px){
+  html body .pv-header-v260 .pv-h-identity{
+    position:sticky!important;
+    top:var(--pv-h-admin,0px)!important;
+    z-index:10110!important;
+  }
+  html body .pv-header-v260 .pv-h-mobile-panel{
+    position:relative!important;
+    z-index:10100!important;
+  }
+  html body .pv-header-v260 .pv-h-market{
+    z-index:10010!important;
+  }
+  html body .pv-header-v260 + .pv-hero-area,
+  html body .pv-header-v260 ~ .pv-hero-area,
+  html body .pv-header-v260 + .pv-inner-masthead-wrap,
+  html body .pv-header-v260 ~ .pv-inner-masthead-wrap,
+  html body .pv-header-v260 + .wrap.main,
+  html body .pv-header-v260 ~ .wrap.main,
+  html body .pv-header-v260 + .wrap.pv-inner-layout,
+  html body .pv-header-v260 ~ .wrap.pv-inner-layout{
+    clear:both!important;
+    position:relative!important;
+    z-index:1!important;
+    margin-top:16px!important;
+  }
+}

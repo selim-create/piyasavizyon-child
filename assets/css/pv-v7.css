@@ -10098,3 +10098,227 @@ html body:not(.home):not(.front-page) .pv-inner-masthead-wrap ins{
   html body.single .pv-inner-title{font-size:31px!important;line-height:1.13!important;}
   html body.single .pv-single-card{padding:20px!important;}
 }
+
+/* === v2.74: safe reimplementation of masthead, single, and mobile layout fixes === */
+
+/* 1 + 5: Keep masthead ads fully visible across 970x90 / 728x90 / 970x250 and avoid pageskin collisions. */
+html body .pv-inner-masthead-wrap{
+  width:min(970px,calc(100% - 36px))!important;
+  max-width:100%!important;
+  display:grid!important;
+  justify-items:center!important;
+  align-items:center!important;
+  gap:14px!important;
+  margin:14px auto 22px!important;
+  overflow:visible!important;
+}
+html body .pv-header-masthead.ad-970,
+html body .ad-970.pv-header-masthead,
+html body .pv-header-masthead.pv-ad-slot{
+  width:min(970px,100%)!important;
+  max-width:970px!important;
+  min-height:90px!important;
+  height:auto!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  margin:0 auto!important;
+  padding:0!important;
+  overflow:visible!important;
+}
+html body .pv-header-masthead .pv-widget,
+html body .pv-header-masthead .widget,
+html body .pv-header-masthead .textwidget,
+html body .pv-header-masthead .custom-html-widget,
+html body .pv-header-masthead .adbox,
+html body .pv-header-masthead [id^="div-gpt"]{
+  width:100%!important;
+  max-width:970px!important;
+  min-height:90px!important;
+  height:auto!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  margin:0 auto!important;
+  overflow:visible!important;
+}
+html body .pv-header-masthead iframe,
+html body .pv-header-masthead img,
+html body .pv-header-masthead ins{
+  display:block!important;
+  width:auto!important;
+  max-width:100%!important;
+  height:auto!important;
+  max-height:none!important;
+  margin:0 auto!important;
+  object-fit:contain!important;
+}
+@media(max-width:1319px){
+  html body .pv-pageskin{
+    display:none!important;
+  }
+}
+
+/* 4 + 5 + 10: Keep single headline/meta/image/content in normal document flow and center sidebar ads safely. */
+html body.single .pv-single-layout,
+html body.single .pv-single-card,
+html body.single .pv-single-content,
+html body.single .pv-single-head,
+html body.single .pv-content-head,
+html body.single .pv-single-title,
+html body.single .pv-entry-meta,
+html body.single .pv-single-excerpt,
+html body.single .pv-inner-featured,
+html body.single .pv-entry-content > .pv-inner-featured{
+  position:static!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  left:auto!important;
+  float:none!important;
+  clear:both!important;
+  transform:none!important;
+}
+html body.single .pv-single-content{
+  display:block!important;
+  overflow:visible!important;
+}
+html body.single .pv-single-head,
+html body.single .pv-content-head{
+  margin:0 0 18px!important;
+  z-index:auto!important;
+}
+html body.single .pv-single-title,
+html body.single .pv-inner-title{
+  max-width:100%!important;
+}
+html body.single .pv-inner-featured,
+html body.single .pv-entry-content > .pv-inner-featured{
+  margin:0 0 26px!important;
+  z-index:0!important;
+}
+html body.single .pv-inner-featured img,
+html body.single .pv-entry-content img,
+html body.single .pv-entry-content iframe,
+html body.single .pv-entry-content table{
+  max-width:100%!important;
+}
+html body.single .pv-single-layout aside.sidebar .pv-ad-slot{
+  margin-left:auto!important;
+  margin-right:auto!important;
+}
+html body.single .pv-single-layout aside.sidebar .ad-300x250,
+html body.single .pv-single-layout aside.sidebar .ad-300x600{
+  width:min(100%,336px)!important;
+  max-width:336px!important;
+  height:auto!important;
+}
+
+/* 7 + 8 + 9 + 11 + 12 + 13: mobile home/feed alignment, centered 300x250, readable hover chip, and no right drift. */
+html body.home .top-showcase .headline-grid .story:hover .story-cat,
+html body.home .top-showcase .headline-grid .story:focus .story-cat{
+  background:#ffb000!important;
+  color:#111827!important;
+  border-color:rgba(255,176,0,.28)!important;
+}
+@media(max-width:980px){
+  html body .wrap{
+    width:min(100% - 24px,1200px)!important;
+    max-width:100%!important;
+  }
+  html body .pv-ad-desktop{
+    display:none!important;
+  }
+  html body .pv-ad-mobile{
+    display:flex!important;
+    justify-content:center!important;
+    width:100%!important;
+  }
+  html body .ad-mobile-masthead.pv-ad-slot{
+    width:min(336px,100%)!important;
+    max-width:336px!important;
+    min-height:100px!important;
+    margin:0 auto 18px!important;
+    overflow:visible!important;
+  }
+  html body .headline-right,
+  html body .headline-grid,
+  html body .main,
+  html body .content,
+  html body .panel,
+  html body .news-list,
+  html body .cards-grid,
+  html body .slider{
+    min-width:0!important;
+    max-width:100%!important;
+  }
+  html body .headline-grid{
+    grid-template-columns:1fr 1fr!important;
+    height:auto!important;
+    gap:12px!important;
+  }
+  html body .headline-grid .story{
+    min-width:0!important;
+    width:100%!important;
+    margin:0!important;
+    overflow:hidden!important;
+  }
+  html body .panel,
+  html body .news-list,
+  html body .cards-grid,
+  html body .slider{
+    position:relative!important;
+    z-index:1!important;
+  }
+  html body .ad-300x250.pv-ad-slot{
+    width:min(336px,100%)!important;
+    max-width:336px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    margin:0 auto!important;
+  }
+  html body .ad-300x250.pv-ad-slot .pv-widget,
+  html body .ad-300x250.pv-ad-slot .widget,
+  html body .ad-300x250.pv-ad-slot .textwidget,
+  html body .ad-300x250.pv-ad-slot .custom-html-widget,
+  html body .ad-300x250.pv-ad-slot .adbox,
+  html body .ad-300x250.pv-ad-slot [id^="div-gpt"]{
+    width:100%!important;
+    max-width:336px!important;
+  }
+  html body.single .pv-single-layout{
+    grid-template-columns:1fr!important;
+    gap:24px!important;
+  }
+  html body.single .pv-single-card{
+    padding:22px!important;
+  }
+  html body.single .pv-single-layout aside.sidebar{
+    width:100%!important;
+    max-width:none!important;
+    order:2!important;
+  }
+}
+@media(max-width:640px){
+  html body .pv-market-table-grid,
+  html body .widget-grid.stock-bottom{
+    grid-template-columns:1fr!important;
+  }
+  html body .ipo-panel,
+  html body .pv-ipo-shortcode,
+  html body .pv-ipo-original-list{
+    max-width:100%!important;
+    overflow-x:auto!important;
+    box-sizing:border-box!important;
+  }
+  html body .pv-ipo-row{
+    min-width:0!important;
+    box-sizing:border-box!important;
+  }
+}
+@media(max-width:480px){
+  html body .headline-grid{
+    grid-template-columns:1fr!important;
+  }
+}

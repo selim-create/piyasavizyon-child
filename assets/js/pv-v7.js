@@ -709,7 +709,7 @@ document.addEventListener('click', function(e){
     }
     function sync(){
       var y = window.pageYOffset || document.documentElement.scrollTop || 0;
-      var shouldFix = window.matchMedia('(min-width: 981px)').matches && identity && y > initialTop;
+      var shouldFix = identity && y > initialTop;
       document.body.classList.toggle('pv-header-scrolled', y > 92);
       document.body.classList.toggle('pv-header-identity-fixed', !!shouldFix);
       ticking = false;
