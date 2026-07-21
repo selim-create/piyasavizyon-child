@@ -1,14 +1,4 @@
 <?php get_header(); ?>
-<?php
-/* v2.72: Pre-fetch pinned post IDs once so they can be excluded from Haberler and Gündem.
-   This replaces the hard-coded offset approach that caused new posts to be skipped. */
-$_pv_slider_pre = pv_v7_flagged_posts( 'bf_anasayfa_slider', array( 'posts_per_page' => 3, 'no_found_rows' => true ) );
-$_pv_kayan_pre  = pv_v7_flagged_posts( 'bf_anasayfa_kayan',  array( 'posts_per_page' => 4, 'no_found_rows' => true ) );
-$pv_excl = array();
-if ( ! empty( $_pv_slider_pre->posts ) ) { foreach ( $_pv_slider_pre->posts as $_pv_p ) { $pv_excl[] = (int) $_pv_p->ID; } }
-if ( ! empty( $_pv_kayan_pre->posts ) )  { foreach ( $_pv_kayan_pre->posts  as $_pv_p ) { $pv_excl[] = (int) $_pv_p->ID; } }
-$pv_excl = array_unique( $pv_excl );
-?>
 <main class="wrap hero pv-hero-area">
 <?php pv_v7_ad('pv_header_ad','970×250 / 970×90 Üst Banner Reklam Alanı','ad ad-970 pv-header-masthead pv-ad-desktop'); ?>
 <?php pv_v7_ad('pv_mobile_masthead','320×100 / 320×150 Mobil Masthead Reklam','ad ad-mobile-masthead pv-ad-mobile'); ?>
@@ -27,7 +17,7 @@ $pv_excl = array_unique( $pv_excl );
   </article>
   <div class="headline-right">
     <div class="headline-grid">
-<?php $top=$_pv_slider_pre; if($top->have_posts()): while($top->have_posts()): $top->the_post(); $img=pv_v7_img(get_the_ID(),'medium_large'); ?>
+<?php $top=pv_v7_flagged_posts('bf_anasayfa_slider', array('posts_per_page'=>3)); if($top->have_posts()): while($top->have_posts()): $top->the_post(); $img=pv_v7_img(get_the_ID(),'medium_large'); ?>
       <a class="story" href="<?php the_permalink(); ?>" <?php if($img) echo 'style="background-image:linear-gradient(to top,rgba(0,0,0,.72),rgba(0,0,0,.05)),url('.esc_url($img).');background-size:cover;background-position:center"'; ?>><span class="story-cat"><?php $cat=get_the_category(); echo esc_html($cat ? $cat[0]->name : 'Haber'); ?></span><h3><?php the_title(); ?></h3></a>
 <?php endwhile; wp_reset_postdata(); endif; ?>
     </div>
@@ -37,7 +27,7 @@ $pv_excl = array_unique( $pv_excl );
 </main>
 
 <section class="wrap main"><div class="content">
-  <?php $s=$_pv_kayan_pre; ?>
+  <?php $s=pv_v7_flagged_posts('bf_anasayfa_kayan', array('posts_per_page'=>4)); ?>
   <div class="slider" id="heroSlider"><div class="dots"><?php for($i=0; $i < (int) $s->post_count; $i++): ?><span class="dot<?php echo $i === 0 ? ' active' : ''; ?>"></span><?php endfor; ?></div>
 <?php $active=' active'; if($s->have_posts()): while($s->have_posts()): $s->the_post(); $img=pv_v7_img(get_the_ID(),'large'); $cat=get_the_category(); ?>
 <a class="slide<?php echo esc_attr($active); ?>" href="<?php the_permalink(); ?>" <?php if($img) echo 'style="background-image:linear-gradient(to top,rgba(0,0,0,.66),transparent 64%),url('.esc_url($img).');background-size:cover;background-position:center"'; ?>><span class="kicker"><?php echo esc_html($cat ? $cat[0]->name : 'Haber'); ?></span><h2><?php the_title(); ?></h2><p><?php echo esc_html(wp_trim_words(get_the_excerpt(),22)); ?></p></a><?php $active=''; endwhile; wp_reset_postdata(); endif; ?>
@@ -57,23 +47,13 @@ $pv_excl = array_unique( $pv_excl );
   <?php pv_v7_gam_content_ad(); ?>
 
   <section class="panel"><div class="panel-h"><h2>Haberler</h2><a class="badge" href="<?php echo esc_url(home_url('/haberler/')); ?>">Tümünü Gör</a></div><div class="news-list">
-<?php
-$_n_args = array( 'posts_per_page' => 7 );
-if ( ! empty( $pv_excl ) ) { $_n_args['post__not_in'] = $pv_excl; }
-$n = pv_v7_posts( $_n_args );
-/* collect Haberler IDs so Gündem doesn't repeat them */
-if ( ! empty( $n->posts ) ) { foreach ( $n->posts as $_pv_p ) { $pv_excl[] = (int) $_pv_p->ID; } $pv_excl = array_unique( $pv_excl ); }
-if($n->have_posts()): while($n->have_posts()): $n->the_post(); $img=pv_v7_img(get_the_ID()); ?>
+<?php $n=pv_v7_posts(array('posts_per_page'=>7,'offset'=>6)); if($n->have_posts()): while($n->have_posts()): $n->the_post(); $img=pv_v7_img(get_the_ID()); ?>
 <a class="news" href="<?php the_permalink(); ?>"><div class="thumb" <?php if($img) echo 'style="background-image:url('.esc_url($img).');background-size:cover;background-position:center"'; ?>></div><div><h3><?php the_title(); ?></h3><p><?php echo esc_html(wp_trim_words(get_the_excerpt(),24)); ?></p></div></a>
 <?php endwhile; wp_reset_postdata(); endif; ?>
 </div></section>
 
   <section class="pv-category-block"><div class="section-title"><h2>Gündem</h2><div class="cat-tabs pv-cat-tabs"><button class="active" type="button" data-cat="all">Gündem</button><button type="button" data-cat="ekonomi">Ekonomi</button><button type="button" data-cat="borsa">Borsa</button><button type="button" data-cat="piyasalar">Piyasalar</button><button type="button" data-cat="finans">Finans</button></div></div><div class="cards-grid pv-cat-grid">
-<?php
-$_c_args = array( 'posts_per_page' => 12 );
-if ( ! empty( $pv_excl ) ) { $_c_args['post__not_in'] = $pv_excl; }
-$c = pv_v7_posts( $_c_args );
-if($c->have_posts()): while($c->have_posts()): $c->the_post(); $img=pv_v7_img(get_the_ID()); $cats=get_the_category(); $slugs=array(); if($cats){ foreach($cats as $cat){ $slugs[]=$cat->slug; } } ?><a class="mini-card" data-cats="<?php echo esc_attr(implode(' ', $slugs)); ?>" href="<?php the_permalink(); ?>"><div class="mini-img" <?php if($img) echo 'style="background-image:url('.esc_url($img).');background-size:cover;background-position:center"'; ?>></div><h4><?php the_title(); ?></h4></a><?php endwhile; wp_reset_postdata(); endif; ?>
+<?php $c=pv_v7_posts(array('posts_per_page'=>12,'offset'=>13)); if($c->have_posts()): while($c->have_posts()): $c->the_post(); $img=pv_v7_img(get_the_ID()); $cats=get_the_category(); $slugs=array(); if($cats){ foreach($cats as $cat){ $slugs[]=$cat->slug; } } ?><a class="mini-card" data-cats="<?php echo esc_attr(implode(' ', $slugs)); ?>" href="<?php the_permalink(); ?>"><div class="mini-img" <?php if($img) echo 'style="background-image:url('.esc_url($img).');background-size:cover;background-position:center"'; ?>></div><h4><?php the_title(); ?></h4></a><?php endwhile; wp_reset_postdata(); endif; ?>
 </div></section>
 
   <section class="widget-grid stock-bottom"><div class="panel"><div class="panel-h"><h2>En Çok Artanlar</h2></div><?php pv_v7_stock_table('up'); ?></div><div class="panel"><div class="panel-h"><h2>En Çok Azalanlar</h2></div><?php pv_v7_stock_table('down'); ?></div></section>
