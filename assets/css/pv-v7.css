@@ -10322,3 +10322,137 @@ html body.home .top-showcase .headline-grid .story:focus .story-cat{
     grid-template-columns:1fr!important;
   }
 }
+
+/* === v2.73 six-critical-fixes override layer === */
+
+/* Single post: force natural block flow and prevent any overlap with featured image/content. */
+html body.single .pv-single-layout,
+html body.single .pv-single-card,
+html body.single .pv-single-content,
+html body.single .pv-single-head,
+html body.single .pv-content-head,
+html body.single .pv-single-title,
+html body.single .pv-entry-meta,
+html body.single .pv-single-excerpt,
+html body.single .pv-inner-featured,
+html body.single .pv-entry-content > .pv-inner-featured{
+  position:static!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  left:auto!important;
+  float:none!important;
+  clear:none!important;
+  transform:none!important;
+  z-index:auto!important;
+}
+html body.single .pv-single-card{padding:28px!important;overflow:visible!important;}
+html body.single .pv-single-head,
+html body.single .pv-content-head{display:block!important;margin:0 0 18px!important;}
+html body.single .pv-single-title{margin:0 0 14px!important;}
+html body.single .pv-entry-meta{margin:0 0 16px!important;}
+html body.single .pv-single-excerpt{margin:0 0 18px!important;}
+html body.single .pv-inner-featured,
+html body.single .pv-entry-content > .pv-inner-featured{
+  display:block!important;
+  margin:0 0 24px!important;
+  margin-top:0!important;
+  overflow:hidden!important;
+  border-radius:18px!important;
+}
+html body.single .pv-inner-featured img{
+  display:block!important;
+  width:100%!important;
+  height:auto!important;
+  max-width:100%!important;
+}
+
+/* Masthead: desktop must not crop right side; mobile masthead must be visible and centered. */
+html body .pv-inner-masthead-wrap{
+  display:grid!important;
+  justify-items:center!important;
+  align-items:center!important;
+  gap:0!important;
+  overflow:visible!important;
+}
+html body .pv-header-masthead.pv-ad-slot{
+  width:min(970px,100%)!important;
+  max-width:970px!important;
+  min-height:90px!important;
+  height:auto!important;
+  margin:0 auto 16px!important;
+  overflow:visible!important;
+}
+html body .pv-header-masthead.pv-ad-slot iframe,
+html body .pv-header-masthead.pv-ad-slot img,
+html body .pv-header-masthead.pv-ad-slot ins{
+  display:block!important;
+  margin:0 auto!important;
+  max-width:100%!important;
+  height:auto!important;
+}
+html body .pv-ad-desktop{display:flex!important;}
+html body .pv-ad-mobile{display:none!important;}
+
+@media(max-width:980px){
+  html,body{max-width:100%;overflow-x:hidden;}
+
+  /* Mobile ad visibility split */
+  html body .pv-ad-desktop{display:none!important;}
+  html body .pv-ad-mobile{
+    display:flex!important;
+    width:100%!important;
+    justify-content:center!important;
+  }
+  html body .ad-mobile-masthead.pv-ad-slot{
+    display:flex!important;
+    width:min(336px,100%)!important;
+    max-width:336px!important;
+    min-height:100px!important;
+    margin:0 auto 16px!important;
+    align-items:center!important;
+    justify-content:center!important;
+    overflow:visible!important;
+  }
+  html body .ad-mobile-masthead.pv-ad-slot iframe,
+  html body .ad-mobile-masthead.pv-ad-slot img,
+  html body .ad-mobile-masthead.pv-ad-slot ins{
+    display:block!important;
+    max-width:100%!important;
+    height:auto!important;
+    margin:0 auto!important;
+  }
+
+  /* Prevent header overlap on first content blocks (all templates). */
+  html body .pv-header-v260 + .pv-hero-area,
+  html body .pv-header-v260 + .pv-inner-masthead-wrap,
+  html body .pv-header-v260 + .wrap.main,
+  html body .pv-header-v260 + .pv-inner-layout{
+    margin-top:0!important;
+  }
+
+  /* Mobile homepage/content right shift fix. */
+  html body .wrap{width:calc(100% - 24px)!important;max-width:100%!important;}
+  html body .pv-hero-area,
+  html body .top-showcase,
+  html body .headline-right,
+  html body .headline-grid,
+  html body .main,
+  html body .content,
+  html body .panel{max-width:100%!important;min-width:0!important;}
+  html body .headline-grid{grid-template-columns:1fr!important;gap:12px!important;}
+  html body .headline-grid .story{
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    transform:none!important;
+  }
+
+  /* Single on mobile: keep sidebar below content full width. */
+  html body.single .pv-single-layout{grid-template-columns:1fr!important;}
+  html body.single .pv-single-layout > aside.sidebar{
+    width:100%!important;
+    max-width:none!important;
+    position:static!important;
+  }
+}
