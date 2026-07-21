@@ -1,0 +1,219 @@
+/* === PiyasaVizyon Header v2.58: single sticky nav, supplied SVG logo, original profile === */
+html body .pv-header-v256,
+html body .pv-header-v257,
+html body .pv-brand-v257,
+html body .pv-sticky-nav-v257,
+html body .pv-h-command,
+html body .pv-h-identity,
+html body .pv-h-rail,
+html body .pv-h-market,
+html body .pv-h-mobile-panel{display:none!important}
+
+html body .pv-topbar-v258,
+html body .pv-header-v258,
+html body .pv-market-v258,
+html body .pv-header-v258 *{box-sizing:border-box}
+
+/* top command bar: not sticky */
+html body .pv-topbar-v258{
+  position:relative!important;
+  z-index:10020!important;
+  background:#fff!important;
+  border-bottom:1px solid #e6eef8!important;
+  color:#5d6f88!important;
+  font-size:12px!important;
+  box-shadow:none!important;
+}
+html body .pv-topbar-v258 .pv-topbar-inner-v258{
+  width:min(1280px,calc(100% - 36px))!important;
+  height:38px!important;
+  min-height:38px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:18px!important;
+  margin:0 auto!important;
+  padding:0!important;
+}
+html body .pv-topbar-v258 .pv-topbar-left-v258,
+html body .pv-topbar-v258 .pv-topbar-right-v258{
+  display:flex!important;
+  align-items:center!important;
+  gap:14px!important;
+  min-width:0!important;
+  height:100%!important;
+  line-height:1!important;
+}
+html body .pv-topbar-v258 .pv-topbar-right-v258{justify-content:flex-end!important;flex-wrap:nowrap!important}
+html body .pv-topbar-v258 a,
+html body .pv-topbar-v258 .date{
+  display:inline-flex!important;
+  align-items:center!important;
+  height:100%!important;
+  color:#536780!important;
+  font-size:12px!important;
+  font-weight:800!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+  text-decoration:none!important;
+}
+html body .pv-topbar-v258 .hot{color:#ef3340!important;font-weight:900!important;gap:7px!important}
+html body .pv-topbar-v258 .hot:before{content:"";width:7px;height:7px;border-radius:99px;background:#ef3340;box-shadow:0 0 0 4px rgba(239,51,64,.13)}
+html body .pv-topbar-v258 a:hover{color:#0758c9!important}
+
+/* original profile/dropdown kept in the topbar */
+html body .pv-topbar-v258 .pv-mast-profile,
+html body .pv-topbar-v258 .pv-mast-login{height:30px!important;display:inline-flex!important;align-items:center!important;position:relative!important;margin:0!important;line-height:1!important}
+html body .pv-topbar-v258 .pv-profile-trigger,
+html body .pv-topbar-v258 .pv-mast-login{
+  height:30px!important;display:inline-flex!important;align-items:center!important;gap:7px!important;padding:4px 10px!important;margin:0!important;
+  border:1px solid #dbe6f4!important;border-radius:999px!important;background:#f6f9fe!important;color:#10203b!important;font-weight:900!important;font-size:12px!important;line-height:1!important;cursor:pointer!important;text-decoration:none!important;
+}
+html body .pv-topbar-v258 .pv-profile-trigger img{width:24px!important;height:24px!important;border-radius:999px!important;display:block!important}
+html body .pv-topbar-v258 .pv-profile-trigger i,
+html body .pv-topbar-v258 .pv-mast-login i{color:currentColor!important;font-size:11px!important}
+html body .pv-topbar-v258 .pv-profile-dropdown{
+  position:absolute!important;right:0!important;top:35px!important;width:225px!important;background:#fff!important;color:#10203b!important;border:1px solid #dbe6f4!important;border-radius:16px!important;box-shadow:0 22px 56px rgba(6,27,61,.18)!important;padding:8px!important;display:block!important;opacity:0!important;visibility:hidden!important;transform:translateY(8px)!important;transition:opacity .16s ease, transform .16s ease, visibility .16s ease!important;z-index:99999!important;
+}
+html body .pv-topbar-v258 .pv-profile-menu:hover .pv-profile-dropdown,
+html body .pv-topbar-v258 .pv-profile-menu.is-open .pv-profile-dropdown{opacity:1!important;visibility:visible!important;transform:translateY(0)!important}
+html body .pv-topbar-v258 .pv-profile-dropdown a{height:auto!important;display:flex!important;align-items:center!important;gap:9px!important;padding:10px 11px!important;border-radius:11px!important;color:#34455e!important;font-size:13px!important;font-weight:800!important;line-height:1.15!important}
+html body .pv-topbar-v258 .pv-profile-dropdown a:hover{background:#eef5ff!important;color:#0758c9!important}
+html body .pv-topbar-v258 .pv-profile-dropdown i{width:16px!important;text-align:center!important;color:currentColor!important}
+
+/* single main navigation: this is the only sticky part */
+html body .pv-header-v258.site-header{
+  position:sticky!important;
+  top:0!important;
+  z-index:10010!important;
+  background:linear-gradient(180deg,#0758c9 0%,#064cae 100%)!important;
+  color:#fff!important;
+  box-shadow:0 14px 34px rgba(4,33,77,.20)!important;
+  border:0!important;
+  width:100%!important;
+}
+html body.admin-bar .pv-header-v258.site-header{top:32px!important}
+html body .pv-header-v258 .pv-nav-inner-v258{
+  width:min(1280px,calc(100% - 36px))!important;
+  height:72px!important;
+  min-height:72px!important;
+  display:grid!important;
+  grid-template-columns:250px minmax(0,1fr) auto!important;
+  gap:20px!important;
+  align-items:center!important;
+  margin:0 auto!important;
+  padding:0!important;
+}
+html body.pv-header-scrolled .pv-header-v258 .pv-nav-inner-v258,
+html body .pv-header-v258.pv-is-fixed .pv-nav-inner-v258{height:60px!important;min-height:60px!important}
+html body .pv-header-v258 .pv-nav-logo-v258{display:inline-flex!important;align-items:center!important;min-width:0!important;text-decoration:none!important}
+html body .pv-header-v258 .pv-nav-logo-v258 img{
+  width:220px!important;max-width:100%!important;height:auto!important;max-height:52px!important;display:block!important;object-fit:contain!important;
+}
+html body.pv-header-scrolled .pv-header-v258 .pv-nav-logo-v258 img,
+html body .pv-header-v258.pv-is-fixed .pv-nav-logo-v258 img{width:190px!important;max-height:42px!important}
+
+html body .pv-header-v258 .pv-nav-menu-v258{height:100%!important;display:flex!important;align-items:center!important;justify-content:center!important;min-width:0!important;overflow:visible!important}
+html body .pv-header-v258 .menu ul,
+html body .pv-header-v258 .menu .pv-wp-menu{height:100%!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:2px!important;list-style:none!important;margin:0!important;padding:0!important;min-width:0!important}
+html body .pv-header-v258 .menu .pv-wp-menu>li,
+html body .pv-header-v258 .menu>ul>li{height:100%!important;position:relative!important;display:flex!important;align-items:center!important}
+html body .pv-header-v258 .menu .pv-wp-menu>li>a,
+html body .pv-header-v258 .menu>ul>li>a{
+  height:100%!important;display:inline-flex!important;align-items:center!important;gap:7px!important;padding:0 11px!important;border:0!important;border-bottom:3px solid transparent!important;color:rgba(255,255,255,.94)!important;background:transparent!important;font-size:13px!important;font-weight:900!important;line-height:1!important;text-decoration:none!important;white-space:nowrap!important;border-radius:0!important;
+}
+html body .pv-header-v258 .menu .pv-wp-menu>li>a:hover,
+html body .pv-header-v258 .menu .pv-wp-menu>li:hover>a,
+html body .pv-header-v258 .menu .current-menu-item>a,
+html body .pv-header-v258 .menu .current-menu-ancestor>a,
+html body .pv-header-v258 .menu a.is-active-link{background:rgba(255,255,255,.10)!important;color:#fff!important;border-bottom-color:#ffb000!important}
+html body .pv-header-v258 .menu li.menu-item-has-children>a:after{content:"⌄"!important;font-size:11px!important;margin-left:3px!important;opacity:.82!important;line-height:1!important}
+html body .pv-header-v258 .menu .sub-menu{
+  position:absolute!important;top:72px!important;left:50%!important;transform:translate(-50%,8px)!important;width:250px!important;background:#fff!important;color:#17233a!important;border:1px solid #dce7f5!important;border-radius:0 0 18px 18px!important;box-shadow:0 24px 60px rgba(6,27,61,.20)!important;padding:10px!important;display:block!important;height:auto!important;opacity:0!important;visibility:hidden!important;transition:opacity .18s ease, transform .18s ease, visibility .18s ease!important;z-index:10060!important;
+}
+html body.pv-header-scrolled .pv-header-v258 .menu .sub-menu,
+html body .pv-header-v258.pv-is-fixed .menu .sub-menu{top:60px!important}
+html body .pv-header-v258 .menu li:hover>.sub-menu{opacity:1!important;visibility:visible!important;transform:translate(-50%,0)!important}
+html body .pv-header-v258 .menu .sub-menu:before{content:"";position:absolute;top:-7px;left:50%;width:14px;height:14px;background:#fff;border-left:1px solid #dce7f5;border-top:1px solid #dce7f5;transform:translateX(-50%) rotate(45deg)}
+html body .pv-header-v258 .menu .sub-menu li{display:block!important;height:auto!important;position:relative!important}
+html body .pv-header-v258 .menu .sub-menu a{height:auto!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;padding:10px 11px!important;border-radius:12px!important;border:0!important;background:transparent!important;color:#32445e!important;font-size:13px!important;font-weight:800!important;line-height:1.15!important;text-decoration:none!important}
+html body .pv-header-v258 .menu .sub-menu a:hover,
+html body .pv-header-v258 .menu .sub-menu .current-menu-item>a{background:#eef5ff!important;color:#0758c9!important}
+html body .pv-header-v258 .menu .sub-menu .sub-menu{left:calc(100% + 10px)!important;top:0!important;transform:translateY(8px)!important;border-radius:16px!important}
+html body .pv-header-v258 .menu .sub-menu li:hover>.sub-menu{transform:translateY(0)!important}
+
+html body .pv-header-v258 .pv-nav-actions-v258{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:10px!important;min-width:max-content!important;margin:0!important;height:100%!important}
+html body .pv-header-v258 .live-btn{height:44px!important;display:inline-flex!important;align-items:center!important;gap:8px!important;background:#ffb000!important;color:#111827!important;border-radius:15px!important;padding:0 17px!important;font-size:13px!important;font-weight:900!important;text-decoration:none!important;border:0!important;box-shadow:0 12px 24px rgba(255,176,0,.25)!important;white-space:nowrap!important}
+html body .pv-header-v258 .live-btn span{display:block!important;width:8px!important;height:8px!important;border-radius:999px!important;background:#111827!important}
+html body .pv-header-v258 .search-btn,
+html body .pv-header-v258 .login-btn,
+html body .pv-header-v258 .pv-mobile-menu-toggle{width:44px!important;height:44px!important;display:inline-grid!important;place-items:center!important;border:1px solid rgba(255,255,255,.20)!important;border-radius:15px!important;background:rgba(255,255,255,.12)!important;color:#fff!important;padding:0!important;cursor:pointer!important;text-decoration:none!important;line-height:1!important}
+html body .pv-header-v258 .search-btn:hover,
+html body .pv-header-v258 .login-btn:hover,
+html body .pv-header-v258 .pv-mobile-menu-toggle:hover{background:rgba(255,255,255,.22)!important;color:#fff!important}
+html body .pv-header-v258 .pv-mobile-menu-toggle{display:none!important}
+
+/* Search panel inside the sticky nav */
+html body .pv-header-v258 .pv-search-panel{display:none!important;position:absolute!important;left:0!important;right:0!important;top:100%!important;background:#fff!important;border-bottom:1px solid #dce7f5!important;box-shadow:0 22px 48px rgba(6,27,61,.14)!important;padding:14px 0!important;z-index:10040!important}
+html body .pv-header-v258.search-open .pv-search-panel{display:block!important}
+html body .pv-header-v258 .pv-search-form{height:54px!important;display:grid!important;grid-template-columns:22px minmax(0,1fr) auto!important;gap:12px!important;align-items:center!important;border:1px solid #dce7f5!important;border-radius:18px!important;background:#f8fbff!important;padding:0 8px 0 16px!important;color:#10203b!important}
+html body .pv-header-v258 .pv-search-form input{height:50px!important;border:0!important;background:transparent!important;outline:0!important;color:#10203b!important;font-size:15px!important;min-width:0!important}
+html body .pv-header-v258 .pv-search-form button{height:40px!important;border:0!important;border-radius:13px!important;background:#0758c9!important;color:#fff!important;font-weight:900!important;padding:0 18px!important;cursor:pointer!important}
+
+/* Market ribbon remains below the sticky nav; not duplicated and not sticky */
+html body .pv-market-v258.market-ribbon{position:relative!important;z-index:90!important;background:#eef5ff!important;border-top:0!important;border-bottom:1px solid #d9e5f4!important;box-shadow:0 12px 28px rgba(6,27,61,.07)!important;color:#10203b!important;overflow:visible!important}
+html body .pv-market-v258 .ticker{width:min(1280px,calc(100% - 36px))!important;min-height:64px!important;display:grid!important;grid-template-columns:repeat(10,minmax(112px,1fr))!important;gap:10px!important;align-items:center!important;margin:0 auto!important;padding:10px 0!important;overflow:visible!important;background:transparent!important;border:0!important;box-shadow:none!important}
+html body .pv-market-v258 .tick{height:54px!important;min-height:54px!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;gap:3px!important;border:1px solid #d9e5f4!important;border-radius:16px!important;background:rgba(255,255,255,.84)!important;box-shadow:0 10px 23px rgba(6,27,61,.06)!important;padding:8px 12px!important;text-decoration:none!important;color:#10203b!important;min-width:0!important;overflow:hidden!important;transition:transform .18s ease, box-shadow .18s ease, background .18s ease!important}
+html body .pv-market-v258 .tick:hover{transform:translateY(-2px)!important;background:#fff!important;box-shadow:0 16px 34px rgba(6,27,61,.10)!important}
+html body .pv-market-v258 .tick small{width:100%!important;display:inline-flex!important;align-items:center!important;justify-content:flex-start!important;gap:7px!important;text-align:left!important;color:#60738e!important;font-size:10px!important;font-weight:900!important;letter-spacing:.3px!important;line-height:1!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;margin:0!important}
+html body .pv-market-v258 .tick b{display:block!important;color:#10203b!important;font-size:16px!important;font-weight:900!important;line-height:1.08!important;letter-spacing:-.4px!important;margin:0!important;white-space:nowrap!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important}
+html body .pv-market-v258 .tick em{font-style:normal!important;font-size:11px!important;font-weight:900!important;line-height:1!important;white-space:nowrap!important}
+html body .pv-market-v258 .tick.up em{color:#18a66f!important}
+html body .pv-market-v258 .tick.down em{color:#ef3340!important}
+html body .pv-market-v258 .pulse{display:inline-block!important;flex:0 0 9px!important;width:9px!important;height:9px!important;border-radius:999px!important;margin:0!important;background:#23c58a!important;box-shadow:0 0 0 5px rgba(35,197,138,.14)!important}
+
+/* Keep the old masthead ad slots visible; header must not crop or hide them. */
+html body .pv-header-masthead,
+html body .ad-970.pv-header-masthead{display:flex!important;align-items:center!important;justify-content:center!important;overflow:visible!important;max-height:none!important;background:transparent!important}
+html body .pv-header-masthead iframe,
+html body .pv-header-masthead img,
+html body #div-gpt-970x250-masthead iframe,
+html body #div-gpt-970x250-masthead img{max-height:none!important;overflow:visible!important}
+
+@media(max-width:1180px){
+  html body .pv-header-v258 .pv-nav-inner-v258{grid-template-columns:220px minmax(0,1fr) auto!important;gap:12px!important}
+  html body .pv-header-v258 .pv-nav-logo-v258 img{width:198px!important}
+  html body .pv-header-v258 .menu .pv-wp-menu>li>a{padding:0 8px!important;font-size:12px!important}
+  html body .pv-market-v258 .ticker{display:flex!important;overflow-x:auto!important;scrollbar-width:none!important}
+  html body .pv-market-v258 .ticker::-webkit-scrollbar{display:none!important}
+  html body .pv-market-v258 .tick{flex:0 0 150px!important}
+}
+@media(max-width:980px){
+  html body .pv-topbar-v258 .pv-topbar-inner-v258{height:auto!important;min-height:38px!important;padding:8px 0!important;align-items:flex-start!important}
+  html body .pv-topbar-v258 .pv-topbar-right-v258{display:none!important}
+  html body .pv-header-v258.site-header{position:sticky!important}
+  html body .pv-header-v258 .pv-nav-inner-v258{height:auto!important;min-height:66px!important;display:grid!important;grid-template-columns:1fr auto!important;gap:10px!important;padding:10px 0!important}
+  html body .pv-header-v258 .pv-nav-logo-v258 img{width:182px!important;max-height:42px!important}
+  html body .pv-header-v258 .pv-nav-menu-v258{display:none!important;grid-column:1 / -1!important;width:100%!important;height:auto!important;overflow:visible!important;background:#0648a5!important;border-radius:18px!important;padding:8px!important}
+  html body.pv-mobile-menu-open .pv-header-v258 .pv-nav-menu-v258{display:block!important}
+  html body .pv-header-v258 .menu ul,
+  html body .pv-header-v258 .menu .pv-wp-menu{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;height:auto!important;min-width:0!important}
+  html body .pv-header-v258 .menu .pv-wp-menu>li{height:auto!important;display:block!important}
+  html body .pv-header-v258 .menu .pv-wp-menu>li>a{height:auto!important;min-height:44px!important;border-radius:13px!important;border:1px solid rgba(255,255,255,.14)!important;background:rgba(255,255,255,.08)!important;padding:12px!important;justify-content:flex-start!important}
+  html body .pv-header-v258 .menu .sub-menu{display:none!important;position:static!important;opacity:1!important;visibility:visible!important;transform:none!important;width:100%!important;box-shadow:none!important;margin-top:6px!important;border-radius:14px!important}
+  html body .pv-header-v258 .menu li:hover>.sub-menu{display:block!important}
+  html body .pv-header-v258 .menu .sub-menu:before{display:none!important}
+  html body .pv-header-v258 .pv-mobile-menu-toggle{display:inline-grid!important}
+  html body .pv-header-v258 .login-btn{display:inline-grid!important}
+  html body .pv-header-v258 .live-btn{height:42px!important;padding:0 13px!important}
+}
+@media(max-width:640px){
+  html body .pv-header-v258 .pv-nav-inner-v258{width:min(100% - 24px,1280px)!important}
+  html body .pv-topbar-v258 .pv-topbar-inner-v258,
+  html body .pv-market-v258 .ticker{width:min(100% - 24px,1280px)!important}
+  html body .pv-header-v258 .pv-nav-logo-v258 img{width:160px!important}
+  html body .pv-header-v258 .live-btn{display:none!important}
+  html body .pv-header-v258 .menu ul,
+  html body .pv-header-v258 .menu .pv-wp-menu{grid-template-columns:1fr!important}
+}
+@media(max-width:782px){html body.admin-bar .pv-header-v258.site-header{top:46px!important}}

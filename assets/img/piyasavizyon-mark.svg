@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="PiyasaVizyon">
+  <defs>
+    <linearGradient id="pvMarkBg" x1="16" y1="12" x2="112" y2="116" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0968f0"/>
+      <stop offset="1" stop-color="#003f9c"/>
+    </linearGradient>
+    <filter id="pvMarkShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#061b3d" flood-opacity=".22"/>
+    </filter>
+  </defs>
+  <rect x="10" y="10" width="108" height="108" rx="32" fill="url(#pvMarkBg)" filter="url(#pvMarkShadow)"/>
+  <path d="M32 84V39h22.5c11.5 0 19.3 7 19.3 17.4S66 74 54.5 74h-9.1v10H32Zm13.4-21.2h8.3c4.3 0 6.8-2.3 6.8-6.3s-2.5-6.2-6.8-6.2h-8.3v12.5Z" fill="#fff"/>
+  <path d="M76.3 84 58.6 39h14.6l10.2 29.2L93.7 39h14.1L90.1 84H76.3Z" fill="#fff"/>
+  <circle cx="93" cy="35" r="7" fill="#ffb000"/>
+</svg>

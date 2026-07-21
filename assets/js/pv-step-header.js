@@ -1,0 +1,1 @@
+document.addEventListener('DOMContentLoaded',function(){var btn=document.querySelector('.pv-mobile-toggle');var nav=document.querySelector('.pv-nav');if(btn&&nav){btn.addEventListener('click',function(){nav.classList.toggle('is-open');});}});

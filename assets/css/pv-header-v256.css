@@ -1,0 +1,173 @@
+/* === v2.56 centered header rebuild === */
+:root{
+  --pv-h-blue:#0758c9;
+  --pv-h-blue-2:#0968f0;
+  --pv-h-navy:#061b3d;
+  --pv-h-ink:#10203b;
+  --pv-h-muted:#72849e;
+  --pv-h-line:#dce7f5;
+  --pv-h-bg:#eef4fb;
+  --pv-h-green:#16a56d;
+  --pv-h-red:#ef4444;
+  --pv-h-yellow:#ffb000;
+}
+html body .pv-header-v256,
+html body .pv-header-v256 *{box-sizing:border-box}
+html body .pv-header-v256{background:#fff;position:sticky;top:0;z-index:10040;color:var(--pv-h-ink);box-shadow:0 16px 48px rgba(6,27,61,.12);font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+html body.admin-bar .pv-header-v256{top:32px}
+html body .pv-h-wrap{width:min(1240px,calc(100% - 32px));margin:0 auto}
+html body .pv-header-v256 a{text-decoration:none;color:inherit}
+html body .pv-header-v256 button,
+html body .pv-header-v256 input{font-family:inherit}
+
+/* command bar */
+html body .pv-h-command{background:#061b3d;color:#d8e7ff}
+html body .pv-h-command-inner{min-height:38px;display:grid;grid-template-columns:auto minmax(180px,1fr) auto;gap:18px;align-items:center;font-size:12px}
+html body .pv-h-command-left,
+html body .pv-h-command-right{display:flex;align-items:center;gap:16px;min-width:0}
+html body .pv-h-today{color:#98accb;white-space:nowrap;font-weight:600}
+html body .pv-h-breaking{display:inline-flex;align-items:center;gap:7px;color:#fff!important;font-weight:900;white-space:nowrap}
+html body .pv-h-breaking:before{content:"";width:7px;height:7px;border-radius:50%;background:#ff3b45;box-shadow:0 0 0 5px rgba(255,59,69,.16)}
+html body .pv-h-marquee{min-width:0;overflow:hidden;white-space:nowrap;color:#bcd0ee;font-weight:700}
+html body .pv-h-marquee span{display:inline-block;animation:pvHeaderMarq 34s linear infinite;will-change:transform}
+@keyframes pvHeaderMarq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+html body .pv-h-command-right{justify-content:flex-end}
+html body .pv-h-command-right a{font-weight:800;color:#e8f2ff!important;white-space:nowrap;line-height:1}
+html body .pv-h-command-right a:hover,
+html body .pv-h-breaking:hover{color:#ffcf57!important}
+
+/* identity */
+html body .pv-h-identity{background:radial-gradient(circle at 14% -20%,rgba(7,88,201,.28),transparent 26%),linear-gradient(180deg,#fff,#f6f9fe);border-bottom:1px solid #e5edf7}
+html body .pv-h-identity-inner{min-height:94px;display:grid;grid-template-columns:auto minmax(260px,560px) auto;gap:22px;align-items:center}
+html body .pv-h-logo{display:flex;align-items:center;gap:15px;min-width:0}
+html body .pv-h-logo-mark{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,#0758c9,#0b71ff);box-shadow:0 16px 34px rgba(7,88,201,.25);color:#fff;font-weight:900;letter-spacing:-1px;line-height:1;flex:0 0 auto}
+html body .pv-h-logo img{width:auto;height:auto;max-width:232px;max-height:46px;display:block;object-fit:contain}
+html body .pv-h-logo-text{font-size:35px;font-weight:900;letter-spacing:-2.3px;line-height:1;color:#0758c9;white-space:nowrap}
+html body .pv-h-logo-text span{color:#061b3d}
+html body .pv-h-search{height:54px;width:100%;justify-self:center;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;border:1px solid #dce7f5;background:#fff;border-radius:18px;padding:0 8px 0 16px;box-shadow:0 12px 30px rgba(6,27,61,.07)}
+html body .pv-h-search i{font-size:17px;color:#7e91ad;line-height:1}
+html body .pv-h-search input{min-width:0;border:0!important;outline:0!important;height:48px;font-size:14px;color:#10203b;background:transparent!important;box-shadow:none!important;padding:0!important}
+html body .pv-h-search button{height:40px;border:0;border-radius:13px;background:#0758c9;color:#fff;font-weight:900;padding:0 16px;cursor:pointer;transition:.18s ease;white-space:nowrap}
+html body .pv-h-search button:hover{background:#061b3d;color:#fff;transform:translateY(-1px)}
+html body .pv-h-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;min-width:0}
+html body .pv-h-live{height:48px;display:inline-flex;align-items:center;gap:9px;background:#ffb000;color:#111827!important;border-radius:16px;padding:0 18px;font-weight:900;box-shadow:0 14px 28px rgba(255,176,0,.28);white-space:nowrap;transition:.18s ease}
+html body .pv-h-live span{width:9px;height:9px;border-radius:50%;background:#111827;display:block;box-shadow:0 0 0 5px rgba(17,24,39,.10)}
+html body .pv-h-live:hover{background:#ffc747;color:#111827!important;transform:translateY(-2px);box-shadow:0 18px 34px rgba(255,176,0,.34)}
+
+/* profile */
+html body .pv-h-profile-wrap{position:relative}
+html body .pv-h-user-chip{height:48px;display:flex;align-items:center;gap:9px;border:1px solid #dce7f5!important;background:#fff!important;border-radius:16px;padding:0 12px 0 6px;font-weight:900;color:#10203b!important;cursor:pointer;box-shadow:none!important;white-space:nowrap}
+html body a.pv-h-user-chip{padding-right:14px}
+html body .pv-h-user-avatar{width:34px;height:34px;border-radius:12px;display:grid;place-items:center;background:#eef5ff;color:#0758c9;font-weight:900;flex:0 0 auto}
+html body .pv-h-user-avatar i{font-size:15px;color:inherit}
+html body .pv-h-user-chip>i{font-size:12px;color:#6b7d97}
+html body .pv-h-profile-menu{position:absolute;right:0;top:58px;width:260px;background:#fff;color:#17233a;border:1px solid #dce7f5;border-radius:18px;box-shadow:0 24px 60px rgba(6,27,61,.18);padding:10px;opacity:0;visibility:hidden;transform:translateY(8px);transition:.18s ease;z-index:10080}
+html body .pv-h-profile-wrap:hover .pv-h-profile-menu,
+html body .pv-h-profile-wrap.is-open .pv-h-profile-menu{opacity:1;visibility:visible;transform:translateY(0)}
+html body .pv-h-profile-head{display:grid;grid-template-columns:42px 1fr;gap:10px;align-items:center;padding:10px;border-radius:14px;background:#f5f9ff;margin-bottom:8px}
+html body .pv-h-profile-avatar{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:#0758c9;color:#fff;font-weight:900}
+html body .pv-h-profile-head b{display:block;font-size:14px;color:#10203b;line-height:1.2}
+html body .pv-h-profile-head span{display:block;color:#72849e;font-size:12px;margin-top:2px}
+html body .pv-h-profile-menu a{display:flex;align-items:center;justify-content:space-between;padding:10px 11px;border-radius:12px;color:#32445e!important;font-size:13px;font-weight:800;line-height:1.25}
+html body .pv-h-profile-menu a:after{content:"›";color:#91a6c4;font-size:16px;line-height:1}
+html body .pv-h-profile-menu a:hover{background:#eef5ff;color:#0758c9!important}
+html body .pv-h-profile-menu .pv-h-logout{color:#ef4444!important}
+html body .pv-h-mobile-toggle{display:none;width:46px;height:46px;place-items:center;border:1px solid #dce7f5!important;border-radius:15px;background:#fff!important;color:#0758c9!important;box-shadow:none!important;cursor:pointer}
+html body .pv-h-mobile-toggle i{font-size:20px;color:inherit}
+
+/* centered category rail */
+html body .pv-h-rail{background:linear-gradient(180deg,#fff,#f8fbff);border-bottom:1px solid #dce7f5;position:relative;z-index:10055}
+html body .pv-h-rail-inner{height:58px;display:flex;align-items:center;justify-content:center;gap:10px;overflow:visible;position:relative}
+html body .pv-h-rail-item{position:relative;height:58px;display:flex;align-items:center;flex:0 0 auto}
+html body .pv-h-rail-link{height:40px;display:inline-flex;align-items:center;gap:8px;border:1px solid #dce7f5;background:#f6f9fe;color:#31435c!important;border-radius:999px;padding:0 14px;font-size:13px;font-weight:900;transition:.18s ease;white-space:nowrap}
+html body .pv-h-rail-link i:first-child{font-size:14px;color:currentColor;line-height:1}
+html body .pv-h-rail-link .pv-h-chevron{font-size:10px;margin-left:2px;color:currentColor;opacity:.78}
+html body .pv-h-rail-item:hover .pv-h-rail-link,
+html body .pv-h-rail-item.is-active .pv-h-rail-link{background:#0758c9;border-color:#0758c9;color:#fff!important;transform:translateY(-1px);box-shadow:0 10px 24px rgba(7,88,201,.18)}
+html body .pv-h-submenu{position:absolute;top:56px;left:50%;transform:translate(-50%,8px);width:250px;background:#fff;color:#17233a;border:1px solid #dce7f5;border-radius:0 0 18px 18px;box-shadow:0 24px 60px rgba(6,27,61,.18);padding:10px;opacity:0;visibility:hidden;transition:.18s ease;z-index:10090}
+html body .pv-h-submenu:before{content:"";position:absolute;top:-7px;left:50%;width:14px;height:14px;background:#fff;border-left:1px solid #dce7f5;border-top:1px solid #dce7f5;transform:translateX(-50%) rotate(45deg)}
+html body .pv-h-rail-item:hover .pv-h-submenu{opacity:1;visibility:visible;transform:translate(-50%,0)}
+html body .pv-h-submenu a{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 11px;border-radius:12px;font-size:13px;font-weight:800;color:#32445e!important;line-height:1.25}
+html body .pv-h-submenu a:after{content:"›";color:#91a6c4;font-size:16px;line-height:1}
+html body .pv-h-submenu a:hover{background:#eef5ff;color:#0758c9!important}
+
+/* mobile panel */
+html body .pv-h-mobile-panel{display:none;background:#fff;border-bottom:1px solid #dce7f5;padding:12px 0;position:relative;z-index:10045}
+html body .pv-h-mobile-panel.is-open{display:block}
+html body .pv-h-mobile-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+html body .pv-h-mobile-grid a{border:1px solid #dce7f5;border-radius:14px;padding:12px;font-weight:900;color:#31435c!important;background:#f6f9fe;display:flex;gap:9px;align-items:center}
+html body .pv-h-mobile-grid a:hover{background:#0758c9;color:#fff!important;border-color:#0758c9}
+html body .pv-h-mobile-search{grid-column:1/-1;display:grid;grid-template-columns:1fr auto;gap:8px;background:#f6f9fe;border:1px solid #dce7f5;border-radius:16px;padding:8px}
+html body .pv-h-mobile-search input{height:42px;border:0!important;background:transparent!important;outline:0!important;padding:0 8px!important;box-shadow:none!important;color:#10203b}
+html body .pv-h-mobile-search button{height:42px;border:0;border-radius:12px;background:#0758c9;color:#fff;font-weight:900;padding:0 14px}
+
+/* market ribbon */
+html body .pv-h-market{background:linear-gradient(180deg,#f6faff,#eaf2fb),radial-gradient(circle at 50% 100%,rgba(255,176,0,.22),transparent 30%);border-bottom:1px solid #d6e2f1}
+html body .pv-h-market-board{padding:14px 0}
+html body .pv-h-market-scroll{display:grid;grid-template-columns:1.25fr repeat(9,1fr);gap:10px;align-items:stretch}
+html body .pv-h-market-feature,
+html body .pv-h-market-tile{min-height:88px;text-decoration:none!important;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;text-align:left;overflow:hidden;transition:.18s ease}
+html body .pv-h-market-feature{border-radius:22px;padding:16px;color:#fff!important;background:radial-gradient(circle at 85% 20%,rgba(255,255,255,.24),transparent 22%),linear-gradient(135deg,#0758c9,#003f9c);box-shadow:0 18px 42px rgba(7,88,201,.22)}
+html body .pv-h-market-tile{border:1px solid #d9e5f4;background:rgba(255,255,255,.78);border-radius:20px;padding:14px;box-shadow:0 12px 28px rgba(6,27,61,.07);color:#17233a!important}
+html body .pv-h-market-tile:hover{transform:translateY(-3px);background:#fff;box-shadow:0 18px 42px rgba(6,27,61,.12)}
+html body .pv-h-market-feature:hover{transform:translateY(-3px);box-shadow:0 22px 50px rgba(7,88,201,.28)}
+html body .pv-h-market-feature small,
+html body .pv-h-market-tile small{display:block;width:100%;font-size:11px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;line-height:1.2;opacity:.86;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0;color:inherit}
+html body .pv-h-market-tile small{color:#667a94!important;opacity:1}
+html body .pv-h-market-feature b{display:block;font-size:28px;letter-spacing:-.8px;margin:4px 0;color:#fff!important;line-height:1.05;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+html body .pv-h-market-tile b{display:block;color:#17233a!important;font-size:21px;letter-spacing:-.7px;margin:4px 0;white-space:nowrap;line-height:1.08;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+html body .pv-h-market-feature em,
+html body .pv-h-market-tile em{font-style:normal;font-size:12px;font-weight:900;line-height:1.2;white-space:nowrap}
+html body .pv-h-market-feature.up em,
+html body .pv-h-market-tile.up em{color:#16a56d!important}
+html body .pv-h-market-feature.down em,
+html body .pv-h-market-tile.down em{color:#ef4444!important}
+html body .pv-h-market-feature.up em{color:#baffdf!important}
+html body .pv-h-market-feature.down em{color:#ffd4d4!important}
+
+/* legacy header neutralization: the old header classes are not used in v2.56 */
+html body .pv-header-v256 + .market-ribbon{display:none!important}
+
+@media(max-width:1180px){
+  html body .pv-h-identity-inner{grid-template-columns:auto 1fr auto}
+  html body .pv-h-search{max-width:none}
+  html body .pv-h-market-scroll{display:flex;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+  html body .pv-h-market-scroll::-webkit-scrollbar{display:none}
+  html body .pv-h-market-feature,
+  html body .pv-h-market-tile{min-width:165px}
+  html body .pv-h-market-feature{min-width:220px}
+  html body .pv-h-rail-inner{justify-content:flex-start;overflow-x:auto;scrollbar-width:none}
+  html body .pv-h-rail-inner::-webkit-scrollbar{display:none}
+}
+@media(max-width:980px){
+  html body .pv-header-v256{position:relative;top:auto!important}
+  html body .pv-h-command-inner{grid-template-columns:1fr auto}
+  html body .pv-h-marquee{display:none}
+  html body .pv-h-command-right{display:none}
+  html body .pv-h-identity-inner{grid-template-columns:auto 1fr auto;min-height:76px;gap:12px}
+  html body .pv-h-logo-mark{width:42px;height:42px;border-radius:14px}
+  html body .pv-h-logo img{max-width:188px;max-height:40px}
+  html body .pv-h-logo-text{font-size:28px}
+  html body .pv-h-search{display:none}
+  html body .pv-h-profile-wrap,
+  html body .pv-h-login-chip{display:none!important}
+  html body .pv-h-mobile-toggle{display:grid}
+  html body .pv-h-rail{display:none}
+  html body .pv-h-live{height:44px;border-radius:14px;padding:0 14px}
+}
+@media(max-width:782px){html body.admin-bar .pv-header-v256{top:46px}}
+@media(max-width:640px){
+  html body .pv-h-wrap{width:min(100% - 24px,1240px)}
+  html body .pv-h-live{display:none}
+  html body .pv-h-logo-mark{display:none}
+  html body .pv-h-logo img{max-width:172px}
+  html body .pv-h-mobile-grid{grid-template-columns:1fr}
+  html body .pv-h-command-left{gap:12px;flex-wrap:wrap}
+  html body .pv-h-command-inner{min-height:42px}
+  html body .pv-h-market-feature,
+  html body .pv-h-market-tile{min-height:78px;min-width:150px;border-radius:16px}
+  html body .pv-h-market-feature{min-width:190px}
+  html body .pv-h-market-feature b{font-size:23px}
+  html body .pv-h-market-tile b{font-size:18px}
+}
+@media(max-width:420px){html body .pv-h-logo img{max-width:150px}}
