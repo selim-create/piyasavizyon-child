@@ -35,59 +35,83 @@ function pv_market_cached_resource( $cache_file, $resource ) {
     return $data;
 }
 
+function pv_market_seed_existing_payload( $cache_file, $data ) {
+    if ( $data === false || $data === null || $data === '' || ( is_array( $data ) && $data === array() ) ) {
+        return false;
+    }
+
+    $cache = new PV_Market_Cache( pv_market_cache_minutes() );
+    return $cache->set( $cache_file, $data );
+}
+
 /**
  * Prime the legacy globals from the child-owned compatibility layer.
  *
- * The existing templates still consume these globals, so keeping their exact
- * shape allows us to move the data source without rewriting the UI in the same
- * deployment. Once the globals are populated, the old
- * pv_v7_ensure_market_data() function returns before directly loading parent
- * API files.
+ * BirFinans can populate several market globals before the child theme reaches
+ * after_setup_theme. When that happens, seed those already-loaded payloads into
+ * the child-owned cache instead of skipping them. If a global is empty, fall
+ * back to the compatibility cache/provider path and keep the historical shape.
  */
 function pv_market_prime_legacy_globals() {
-    global $currency_data, $coin_data, $altin_data, $bist100_data, $parite_data;
+    global $currency_data, $coin_data, $altin_data, $bist100_data, $parite_data, $borsa_data;
     global $borsa_artanlar_data, $borsa_azalanlar_data, $borsa_islem_gorenler_data;
 
-    if ( empty( $currency_data ) ) {
+    if ( ! empty( $currency_data ) && is_array( $currency_data ) ) {
+        pv_market_seed_existing_payload( 'doviz.json', $currency_data );
+    } else {
         $data = pv_market_cached_resource( 'doviz.json', 'currency' );
         if ( is_array( $data ) ) {
             $currency_data = $data;
         }
     }
 
-    if ( empty( $altin_data ) ) {
+    if ( ! empty( $altin_data ) && is_array( $altin_data ) ) {
+        pv_market_seed_existing_payload( 'altin.json', $altin_data );
+    } else {
         $data = pv_market_cached_resource( 'altin.json', 'altin' );
         if ( is_array( $data ) ) {
             $altin_data = $data;
         }
     }
 
-    if ( empty( $parite_data ) ) {
+    if ( ! empty( $parite_data ) && is_array( $parite_data ) ) {
+        pv_market_seed_existing_payload( 'parite.json', $parite_data );
+    } else {
         $data = pv_market_cached_resource( 'parite.json', 'parite' );
         if ( is_array( $data ) ) {
             $parite_data = $data;
         }
     }
 
-    if ( empty( $coin_data ) ) {
+    if ( ! empty( $coin_data ) && is_array( $coin_data ) ) {
+        pv_market_seed_existing_payload( 'coin.json', $coin_data );
+    } else {
         $data = pv_market_cached_resource( 'coin.json', 'coin' );
         if ( is_array( $data ) ) {
             $coin_data = $data;
         }
     }
 
-    if ( empty( $bist100_data ) ) {
-        $borsa_data = pv_market_cached_resource( 'borsa.json', 'borsa' );
-        if ( is_array( $borsa_data ) ) {
-            $bist100_data = isset( $borsa_data['bist_100'] ) ? $borsa_data['bist_100'] : array();
-            $borsa_artanlar_data = isset( $borsa_data['borsa_artanlar'] ) ? $borsa_data['borsa_artanlar'] : array();
-            $borsa_azalanlar_data = isset( $borsa_data['borsa_azalanlar'] ) ? $borsa_data['borsa_azalanlar'] : array();
-            $borsa_islem_gorenler_data = isset( $borsa_data['borsa_islem_gorenler'] ) ? $borsa_data['borsa_islem_gorenler'] : array();
+    if ( ! empty( $borsa_data ) && is_array( $borsa_data ) ) {
+        pv_market_seed_existing_payload( 'borsa.json', $borsa_data );
+
+        $bist100_data = isset( $borsa_data['bist_100'] ) ? $borsa_data['bist_100'] : $bist100_data;
+        $borsa_artanlar_data = isset( $borsa_data['borsa_artanlar'] ) ? $borsa_data['borsa_artanlar'] : $borsa_artanlar_data;
+        $borsa_azalanlar_data = isset( $borsa_data['borsa_azalanlar'] ) ? $borsa_data['borsa_azalanlar'] : $borsa_azalanlar_data;
+        $borsa_islem_gorenler_data = isset( $borsa_data['borsa_islem_gorenler'] ) ? $borsa_data['borsa_islem_gorenler'] : $borsa_islem_gorenler_data;
+    } elseif ( empty( $bist100_data ) ) {
+        $data = pv_market_cached_resource( 'borsa.json', 'borsa' );
+        if ( is_array( $data ) && $data !== array() ) {
+            $borsa_data = $data;
+            $bist100_data = isset( $data['bist_100'] ) ? $data['bist_100'] : array();
+            $borsa_artanlar_data = isset( $data['borsa_artanlar'] ) ? $data['borsa_artanlar'] : array();
+            $borsa_azalanlar_data = isset( $data['borsa_azalanlar'] ) ? $data['borsa_azalanlar'] : array();
+            $borsa_islem_gorenler_data = isset( $data['borsa_islem_gorenler'] ) ? $data['borsa_islem_gorenler'] : array();
         }
     }
 }
 
-// after_setup_theme runs before init/template rendering and after the parent and
-// child functions files have been loaded. Priority 1 keeps the compatibility
-// data ready before the rest of the child theme begins using it.
+// after_setup_theme runs after parent and child functions files are loaded. This
+// is the earliest safe point to mirror any parent-populated globals into the
+// child-owned cache without changing the visible market payloads.
 add_action( 'after_setup_theme', 'pv_market_prime_legacy_globals', 1 );
