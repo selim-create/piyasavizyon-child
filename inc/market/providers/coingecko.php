@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 function pv_market_coingecko_shadow_fetch() {
     $url = add_query_arg(
         array(
-            'vs_currency'              => 'usd',
+            'vs_currency'              => 'try',
             'order'                    => 'market_cap_desc',
             'per_page'                 => 100,
             'page'                     => 1,
@@ -61,20 +61,37 @@ function pv_market_coingecko_shadow_fetch() {
             continue;
         }
 
-        $change = isset( $row['price_change_percentage_24h'] ) && is_numeric( $row['price_change_percentage_24h'] )
+        // Historical Piyasa Vizyon semantics:
+        // - current_price: TRY spot price
+        // - price_24h: 24-hour percentage movement
+        // - change_rate: percentage distance from ATH
+        // - suply: circulating supply (legacy field name intentionally kept)
+        $change_24h = isset( $row['price_change_percentage_24h'] ) && is_numeric( $row['price_change_percentage_24h'] )
             ? (float) $row['price_change_percentage_24h']
+            : 0.0;
+
+        $ath_change = isset( $row['ath_change_percentage'] ) && is_numeric( $row['ath_change_percentage'] )
+            ? (float) $row['ath_change_percentage']
             : 0.0;
 
         $supply = isset( $row['circulating_supply'] ) && is_numeric( $row['circulating_supply'] )
             ? (float) $row['circulating_supply']
             : 0.0;
 
+        $last_updated = '';
+        if ( ! empty( $row['last_updated'] ) ) {
+            $timestamp = strtotime( (string) $row['last_updated'] );
+            if ( $timestamp !== false ) {
+                $last_updated = wp_date( 'H:i', $timestamp );
+            }
+        }
+
         $payload['symbol'][ $index ]        = strtoupper( sanitize_text_field( (string) $row['symbol'] ) );
         $payload['name'][ $index ]          = sanitize_text_field( (string) $row['name'] );
         $payload['current_price'][ $index ] = isset( $row['current_price'] ) && is_numeric( $row['current_price'] ) ? (float) $row['current_price'] : 0.0;
-        $payload['price_24h'][ $index ]     = $change;
-        $payload['last_updated'][ $index ]  = ! empty( $row['last_updated'] ) ? sanitize_text_field( (string) $row['last_updated'] ) : '';
-        $payload['change_rate'][ $index ]   = $change;
+        $payload['price_24h'][ $index ]     = $change_24h;
+        $payload['last_updated'][ $index ]  = $last_updated;
+        $payload['change_rate'][ $index ]   = $ath_change;
         $payload['suply'][ $index ]         = $supply;
         $payload['image'][ $index ]         = ! empty( $row['image'] ) ? esc_url_raw( (string) $row['image'] ) : '';
     }
