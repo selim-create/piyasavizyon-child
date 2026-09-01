@@ -35,7 +35,13 @@ function pv_market_cached_resource( $cache_file, $resource ) {
         $cache = new PV_Market_Cache( pv_market_cache_minutes() );
     }
 
-    $data = $cache->get( $cache_file );
+    // Migrated resources must not silently repopulate from the BirFinans cache
+    // namespace. Crypto is the first migrated resource, so a missing/expired
+    // child coin cache must proceed to the CoinGecko provider instead.
+    $data = ( $resource === 'coin' && method_exists( $cache, 'get_current' ) )
+        ? $cache->get_current( $cache_file )
+        : $cache->get( $cache_file );
+
     if ( $data !== false && pv_market_payload_is_valid( $resource, $data ) ) {
         return $data;
     }
