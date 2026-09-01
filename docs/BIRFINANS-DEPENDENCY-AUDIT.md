@@ -1,235 +1,165 @@
 # Piyasa Vizyon – BirFinans Dependency Audit
 
-Date: 2026-09-01
+Date: 2026-09-02
+Baseline: `main` at `9b58f09d2e69c75d13007386ef5e5a8f30040664` (PR #26)
 
 ## Goal
 
-Remove the runtime dependency on the legacy `birfinans` parent theme without breaking production behavior, then make Piyasa Vizyon a standalone theme that can run on PHP 8.3.
+Remove every runtime dependency on the legacy `birfinans` parent theme, make Piyasa Vizyon a standalone WordPress theme on PHP 7.4 first, then validate and switch production to PHP 8.3.
 
-## Current blocker
+The parent `functions.php` is ionCube encoded with the PHP 7.2 encoder and cannot be the runtime foundation for PHP 8.3. The child still intentionally declares `Template: birfinans`; do not remove it until the dependency audit is clean.
 
-The active parent theme `wp-content/themes/birfinans/functions.php` is ionCube encoded with the PHP 7.2 encoder. CLI tests confirm that the current file cannot run on PHP 8.1, 8.2 or 8.3. PHP 8.0 on the host does not have the ionCube Loader enabled. Therefore the current parent theme is the hard blocker for any PHP 8.x migration.
+## Already child-owned / verified after PR #26
 
-The child theme still declares:
+The following market surfaces no longer require the old parent data/runtime path when rendered through the current child routes:
 
-```css
-Template: birfinans
-```
+- currency payload: child BirTema provider
+- gold payload: child BirTema provider
+- parity payload: child BirTema provider
+- crypto payload: CoinGecko provider
+- BIST 100 header snapshot: child Mynet parser
+- all indices list: child Mynet parser/view
+- all stocks list: child Mynet parser/view
+- stock detail: child Mynet parser/view
+- live borsa: child Uzmanpara parser + WordPress AJAX
+- main `/borsa/`: child Mynet BIST 100/50/30 parser/view
+- rendered `/borsa/` and stock-detail Highcharts: official versioned CDN rather than parent asset
 
-Removing that line now would break multiple runtime paths. The migration must be phased.
+Legacy files such as `borsa-page.php`, `hisse-tablo.php`, `hisse-detay.php` and `endeksler-tablo.php` may still contain parent calls in source, but current `template_include` routing must be considered before classifying those references as live runtime dependencies.
 
-## Executive summary
+## Remaining critical runtime clusters
 
-The child theme is already substantially independent in its presentation layer: it has its own `header.php`, `footer.php`, `single.php`, `page.php`, `archive.php`, front page implementation, CSS/JS bundles, advertising slots, corporate pages and many finance templates.
+### A. Market detail/network extraction
 
-The remaining high-risk dependency clusters are:
+Confirmed live or potentially live parent dependencies still present in `main`:
 
-1. Market-data bootstrap and legacy helper functions.
-2. Parent API files and direct parent asset URLs.
-3. `$bp_options` values produced by the BirFinans admin framework.
-4. Login/register/profile/member flows.
-5. Parent-only template parts and legacy live-chat/favorites functions.
-6. Parent metabox/admin functionality that still writes legacy `bf_*` metadata.
-7. Rewrite/page-slug assumptions inherited from BirFinans.
+- `endeks-detay.php`
+  - `get_data_service()`
+  - parent Highcharts asset
+  - parent `/api/highcharts.php`
+  - `$bp_options`
+- `parite-detay.php`
+  - `get_data_service()`
+  - parent Highcharts asset
+  - parent `/api/highcharts.php`
+- `altin-detay.php`
+  - `get_url_curl()`
+  - parent Highcharts asset
+  - parent `/api/highcharts.php`
+- `doviz-detay.php`
+  - `get_url_curl()`
+  - parent Highcharts asset
+  - parent `/api/highcharts.php`
+  - parent `user_api.php` list/favorites mutations
+- `coin-data.php`
+  - `get_url_curl()` for legacy daily-chart transport
+  - parent Highcharts asset
+- `doviz-arsiv.php`
+  - `get_url_curl()`
+- `ekonomik-takvim.php`
+  - direct `get_data_service()` Mynet proxy calls
+- `parite-tablo.php`
+  - direct parent `/api/parite-data.php` include
+- `faiz-oranlari.php`
+  - parent `/api/faiz-oranlari.php`
+- `template-credit-helpers.php`
+  - parent `/api/kredi.php`
+  - parent `/img/banka/`
 
-## Dependency cluster A – market data and network helpers
+Priority remains: migrate one surface at a time, preserve URLs/data shapes, test production after each merge.
 
-### Critical runtime dependency
+### B. Legacy market bootstrap fallback
 
-`functions-legacy.php` loads the following from the parent directory using `get_template_directory()`:
+`functions-legacy.php` still contains parent bootstrap code using:
 
-- `api/DataCache.php`
-- `api/api_helper.php`
-
-These provide or support:
-
+- `get_template_directory() . '/api/DataCache.php'`
+- `get_template_directory() . '/api/api_helper.php'`
 - `DataCache`
 - `get_data_service()`
-- `get_url_curl()`
-- legacy remote market-data calls
 
-The child market bootstrap then uses those helpers for:
+`inc/market/provider.php` still deliberately retains `get_data_service()` as the final fallback for resources not yet migrated.
 
-- currency data
-- gold data
-- parity data
-- crypto data
-- BIST / stock-market data
+Do not remove these fallbacks until all remaining market surfaces are child-owned. Final Phase 2D target:
 
-### Child templates depending on these helpers
+- parent DataCache include: none
+- parent api_helper include: none
+- `get_data_service()` fallback: none
+- `get_url_curl()` runtime dependency: none
 
-Known direct consumers include:
+### C. `$bp_options` / `birpara`
 
-- `ekonomik-takvim.php`
-- `hisse-tablo.php`
-- `hisse-detay.php`
-- `endeksler-tablo.php`
-- `endeks-detay.php`
-- `parite-detay.php`
-- `borsa-page.php`
-- `canli-borsa.php`
-- `doviz-arsiv.php`
-- `doviz-detay.php`
-- `altin-detay.php`
-- `coin-data.php`
+Direct `$bp_options` reads remain widespread and are still a standalone blocker. Confirmed uses include:
 
-### Migration action
-
-Create a new child-owned data layer under `inc/market/` and migrate callers behind Piyasa Vizyon namespaced helpers. Do not keep BirFinans licensing/proxy behavior as an architectural dependency.
-
-Suggested target:
-
-- `inc/market/cache.php`
-- `inc/market/http.php`
-- `inc/market/providers.php`
-- `inc/market/normalize.php`
-- `inc/market/bootstrap.php`
-
-The first migration should preserve existing return shapes so templates can be moved without a simultaneous frontend rewrite.
-
-## Dependency cluster B – direct parent API and asset paths
-
-The child still points directly to parent files via `get_template_directory()` / `get_template_directory_uri()` or `bloginfo('template_directory')`.
-
-Confirmed examples:
-
-- `faiz-oranlari.php` → `/api/faiz-oranlari.php`
-- `parite-tablo.php` → `/api/parite-data.php`
-- `canli-borsa.php` → `/api/canli_borsa.php`
-- `template-credit-helpers.php` → `/api/kredi.php`
-- `doviz-detay.php` / `altin-detay.php` / `hisse-detay.php` / `endeks-detay.php` / `parite-detay.php` / `borsa-page.php` → `/api/highcharts.php`
-- several market templates → `/js/highcharts.js`
-- credit templates → `/img/banka/`
-- currency templates → `/img/flag/`
-
-### Important finding
-
-The parent `api/highcharts.php` currently only returns `OK`, while several child templates still call it. That call path should be treated as legacy/dead integration until production behavior is verified.
-
-### Migration action
-
-Move only actually-used assets/data endpoints into the child. Replace parent URI helpers with child-owned helpers. Prefer WordPress AJAX/REST endpoints for dynamic data rather than directly executing PHP files inside a theme directory.
-
-## Dependency cluster C – `$bp_options`
-
-A large part of the legacy finance templates still read global `$bp_options` values supplied by the BirFinans admin framework.
-
-Known categories include:
-
-- page slugs for currency, gold, parity, stocks, indices and crypto
+- finance/detail/list page slugs
+- `dovizHesaplaRewrite`
 - credit page slugs
-- rewrite text such as `dovizHesaplaRewrite`
-- member/profile page slugs
-- live-chat toggle
 - cache time
-- legacy visual/login settings
+- member/profile related slugs and legacy settings
 
-### Migration strategy
+Required approach:
 
-Do not replace every `$bp_options` read manually in one PR.
+1. introduce a child-owned compatibility/options layer;
+2. read the existing `birpara` option payload while parent is active;
+3. provide explicit safe defaults;
+4. migrate only business-critical values into a child-owned option namespace;
+5. move templates away from direct `$bp_options` reads incrementally.
 
-Create a compatibility layer first:
+Do not port the whole BirFinans admin framework.
 
-```php
-function pv_legacy_options() : array
-```
+### D. Auth/member
 
-This layer should:
+Registration is child-owned and hardened, but login/member functionality is not fully independent.
 
-1. Read the existing saved BirFinans option payload while the parent is active.
-2. Supply explicit Piyasa Vizyon defaults for required keys.
-3. Expose small typed helpers such as `pv_market_page_slug()` and `pv_credit_page_slug()`.
-4. Allow templates to migrate away from direct global access gradually.
+Confirmed remaining dependencies:
 
-Before the final standalone switch, migrate the required persisted values to a child-owned option namespace.
+- `assets/js/pv-auth-security.js` still submits `ajaxlogin`;
+- the login handler/template can still be parent-owned;
+- `doviz-detay.php` still calls parent `user_api.php` for list mutations;
+- favorites/likes/profile/list/alarm functionality must be verified for actual production use before porting.
 
-## Dependency cluster D – login, registration and member system
+Required approach:
 
-This is high priority because public registration is an active Piyasa Vizyon feature.
+- child-owned login template/handler;
+- nonce + rate-limit/bruteforce protection;
+- keep current secure registration intact;
+- replace direct `user_api.php` calls with WordPress AJAX/REST;
+- port only member features that are actually used.
 
-### Current parent responsibilities
+### E. Parent-only template parts
 
-The parent currently provides:
-
-- `login.php` template
-- `ajaxlogin` handler
-- historical `ajaxregister` handler
-- login/register JS registration
-- member profile templates
-- `user_api.php`
-- favorites/likes routines
-- member lists and alarms
-
-The child now securely overrides registration with:
-
-- rate limits
-- honeypot
-- Turnstile
-- explicit Subscriber role
-- hardened AJAX registration
-
-However the login form/template itself remains parent-owned, and the child authentication JavaScript still sends `ajaxlogin`, which is handled by the parent.
-
-### Migration action
-
-Move this cluster before the final parent removal:
-
-1. Create child-owned login/register template.
-2. Add child-owned secure `ajaxlogin` handler.
-3. Preserve the existing secure registration handler.
-4. Replace `user_api.php` direct theme endpoint calls with authenticated WordPress AJAX/REST actions using nonces and capability/current-user checks.
-5. Rebuild only the member functions still required by the current product.
-
-### Security note
-
-The old `user_api.php` is not suitable as the long-term architecture because it directly includes `wp-config.php`, switches behavior from a query-string `type`, and handles profile/password/list/alarm mutations outside normal WordPress AJAX/REST routing.
-
-## Dependency cluster E – parent template parts
-
-Some child market detail pages request parent template parts that do not exist in the child repository.
-
-Confirmed examples:
+Previously found parent-only parts include:
 
 - `inc/widgets/live_chat`
 - `inc/widgets/hisse-alt-news`
 
-The live-chat template depends on the legacy `bt_live_chat` table. Production WP-CLI already showed that this table does not exist on the current database.
+The expected legacy `bt_live_chat` table was not present in production. Classify each usage as active, dead, replaceable, or removable before standalone cutover.
 
-### Migration action
+### F. Editorial/admin compatibility
 
-Inventory each parent template-part call and classify it:
-
-- still visible and required
-- already effectively dead
-- replace with child component
-- remove
-
-Live chat should not be migrated automatically until product need is confirmed.
-
-## Dependency cluster F – legacy post metadata/admin controls
-
-The current child front page still uses legacy metadata such as:
+The front page still consumes legacy metadata such as:
 
 - `bf_anasayfa_slider`
 - `bf_anasayfa_kayan`
 
-The parent theme contains the metabox definitions that create/manage these values in the WordPress editor.
+Existing stored values can remain, but parent removal may remove the editor UI that writes them. Verify the production editorial workflow and recreate only the controls that are still required, keeping the same meta keys initially.
 
-### Migration action
+Also audit parent-registered WordPress features used by the child:
 
-Before standalone mode, reproduce only the metadata controls actually used by the current Piyasa Vizyon editorial workflow. Keep the same meta keys initially so existing content keeps working without a data migration.
+- nav menus
+- sidebars/widgets
+- theme support
+- image sizes
+- rewrites/query vars
+- cron hooks
+- AJAX actions
+- shortcodes
+- CPT/taxonomy registrations
+- body classes
+- enqueued assets
 
-## Dependency cluster G – parent framework and saved settings
+### G. Standard template fallback closure
 
-The parent contains a Codestar-based admin framework using the `birpara` option namespace and many settings that the old templates reference.
-
-The current child presentation no longer needs the entire framework. The migration must determine which saved values are still business-critical and copy only those into child-owned settings.
-
-Do not port the whole BirFinans admin framework.
-
-## Dependency cluster H – standard template coverage
-
-Good news: several core WordPress templates are already child-owned, including:
+Child-owned core templates currently include:
 
 - `header.php`
 - `footer.php`
@@ -240,110 +170,78 @@ Good news: several core WordPress templates are already child-owned, including:
 - `search.php`
 - `front-page.php`
 
-This substantially reduces the final standalone risk.
-
-However parent fallback behavior must still be checked for templates not present in the child, especially:
+Before removing the parent, test/add coverage for:
 
 - category
 - tag
 - author
-- date/taxonomy variants
-- attachment or special legacy templates
+- date
+- taxonomy
+- attachment
+- home/index
+- comments/searchform
+- special legacy templates
 
-Where a child file is absent today, WordPress may currently fall back to the parent theme.
+File-presence checks are not enough; route-level smoke tests are required.
 
-## Proposed migration phases
+## Current Phase 2C order
 
-### Phase 1 – audit and compatibility foundation
+1. BIST 50 / BIST 30 `change_pct` parser fix.
+2. Endeks detail extraction.
+3. Parity detail extraction.
+4. Gold detail extraction.
+5. Currency detail extraction.
+6. Coin detail daily-chart transport.
+7. Currency archive.
+8. Economic calendar.
+9. Parity table.
+10. Interest rates.
+11. Credit helpers.
+12. Parent flag/bank/icon assets.
 
-No production behavior change.
+The current branch `phase-2c/index-detail-parent-extraction` implements items 1–2 together because they use the same Mynet index-detail parser. It must not expand into parity/auth/options work.
 
-Deliverables:
+## Final static search before standalone cutover
 
-- dependency inventory
-- `$bp_options` compatibility helper
-- parent-path helper inventory
-- runtime smoke-test checklist
+Classify every match for:
 
-### Phase 2 – market data extraction
-
-Move:
-
-- cache
-- HTTP helper
-- market provider layer
-- currency/gold/parity/crypto/BIST bootstrap
-- credit data access
-- required bank/flag/chart assets
-
-Then replace direct `get_template_directory*()` market references.
-
-### Phase 3 – member/auth extraction
-
-Move:
-
-- login template
-- AJAX login
-- registration UI
-- profile/account mutations
-- required list/alarm/favorite functionality
-
-Keep Turnstile/rate-limit protection intact.
-
-### Phase 4 – editorial/admin compatibility
-
-Recreate only required:
-
-- homepage meta switches
-- page/rewrite settings still in use
-- any required widget/sidebar registration
-
-Migrate required settings out of `birpara`.
-
-### Phase 5 – template fallback closure
-
-Add child-owned equivalents for all WordPress templates that currently fall through to the parent.
-
-Run route-by-route visual and functional regression checks.
-
-### Phase 6 – standalone cutover
-
-Only after dependency search is clean:
-
-1. Remove `Template: birfinans` from `style.css`.
-2. Verify the theme activates standalone on PHP 7.4 first.
-3. Run CLI and staging smoke tests on PHP 8.3.
-4. Fix PHP 8.3 deprecations/fatals in child code.
-5. Switch production PHP only after staging parity.
-
-## Required validation before standalone cutover
-
-The following searches should return no runtime parent dependency:
-
-- `get_template_directory(` for parent-only files
-- `get_template_directory_uri(` for parent-only assets
+- `get_template_directory(`
+- `get_template_directory_uri(`
 - `bloginfo('template_directory')`
 - `bloginfo("template_directory")`
-- direct references to `birfinans`
-- unresolved BirFinans-only helper function calls
-- unresolved parent-only template parts
+- `/themes/birfinans`
+- `birfinans/`
+- `get_data_service(`
+- `get_url_curl(`
+- `DataCache`
+- `api_helper`
+- `user_api.php`
+- `ajaxlogin`
+- `get_template_part(`
+- `bp_options`
+- `birpara`
 
-`Template: birfinans` is removed only after those checks pass.
+Each match must be one of:
 
-## First implementation target
+- active runtime dependency
+- child-safe WordPress API usage
+- dead/legacy file not on a render path
+- docs/comment only
 
-The safest first code phase is the **market data extraction**, because it is the largest shared dependency and can be migrated while the parent remains active as a fallback.
+Target: zero active runtime parent dependencies.
 
-Recommended first implementation PR after this audit:
+## Standalone/PHP sequence
 
-**“Introduce child-owned market compatibility layer”**
+Do not change the order:
 
-Scope:
+1. finish runtime dependency removal;
+2. remove `Template: birfinans`;
+3. validate standalone theme on production PHP 7.4;
+4. run PHP 8.3 CLI syntax/runtime/plugin compatibility checks while web PHP stays 7.4;
+5. perform full route/admin/auth regression testing;
+6. take fresh pre-cutover backups;
+7. switch production PHP to 8.3 through Hostinger hPanel;
+8. run immediate smoke tests and keep rollback ready;
+9. only later consider archiving/deleting the inactive parent theme.
 
-- add child-owned cache/HTTP/provider bootstrap
-- keep old data shapes
-- add fallback to existing parent provider while production parity is measured
-- migrate `functions-legacy.php` away from direct parent `api/DataCache.php` and `api/api_helper.php`
-- do not change templates or PHP version yet
-
-This establishes the seam needed for every later migration without requiring a risky all-at-once cutover.
+Production PHP must remain 7.4 until standalone completion.
