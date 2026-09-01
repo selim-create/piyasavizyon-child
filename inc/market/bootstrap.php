@@ -109,6 +109,35 @@ function pv_market_prime_legacy_globals() {
             $borsa_islem_gorenler_data = isset( $data['borsa_islem_gorenler'] ) ? $data['borsa_islem_gorenler'] : array();
         }
     }
+
+    /**
+     * Temporary runtime guard for the historical pv_v7_ensure_market_data().
+     *
+     * That legacy helper decides whether to load BirFinans DataCache.php and
+     * api_helper.php by checking whether currency, gold and BIST globals are
+     * non-empty. The current BirFinans borsa provider returns an empty payload,
+     * which would otherwise force the old parent API bootstrap even after the
+     * child-owned cache has successfully supplied every usable core dataset.
+     *
+     * Once currency, gold, parity and crypto are all ready, expose an explicit
+     * non-cacheable "unavailable" BIST marker. Existing rendering already falls
+     * back to 0/0 for missing BIST values, so this does not invent market data;
+     * it only prevents the obsolete parent cache/bootstrap path from running.
+     * The marker is never written to the child market cache.
+     */
+    $core_market_ready =
+        ! empty( $currency_data ) && is_array( $currency_data ) &&
+        ! empty( $altin_data ) && is_array( $altin_data ) &&
+        ! empty( $parite_data ) && is_array( $parite_data ) &&
+        ! empty( $coin_data ) && is_array( $coin_data );
+
+    if ( $core_market_ready && empty( $bist100_data ) ) {
+        $bist100_data = array(
+            '_pv_unavailable' => true,
+            'value'           => '0',
+            'change_rate'     => '0',
+        );
+    }
 }
 
 // after_setup_theme runs after parent and child functions files are loaded. This
