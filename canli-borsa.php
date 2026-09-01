@@ -6,50 +6,9 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 get_header();
 
 $endex = isset($_GET['Endex']) ? sanitize_text_field(wp_unslash($_GET['Endex'])) : 'bist-100';
-$allowed_endex = array('bist-TUM','bist-100','bist-50','bist-30');
-if ( ! in_array($endex, $allowed_endex, true) ) { $endex = 'bist-100'; }
+$endex = function_exists('pv_live_borsa_allowed_endex') ? pv_live_borsa_allowed_endex($endex) : 'bist-100';
 
-$url = $endex && $endex !== 'bist-100'
-  ? 'https://uzmanpara.milliyet.com.tr/canli-borsa/' . rawurlencode($endex) . '-hisseleri/'
-  : 'https://uzmanpara.milliyet.com.tr/canli-borsa/';
-
-$uzmanpara = function_exists('get_url_curl') ? get_url_curl($url) : '';
-preg_match_all('@<table cellspacing="0" cellpadding="0" border="0" class="table3">(.*?)</table>@si', (string) $uzmanpara, $table_data);
-
-function pv_v255_live_borsa_rows_from_table( $html ) {
-  $rows = array();
-  if ( empty($html) ) { return $rows; }
-  preg_match_all('@<tr class="zebra" id="h_tr_id_(.*?)" >(.*?)</tr>@si', $html, $matches);
-  foreach ( (array) ($matches[2] ?? array()) as $val ) {
-    preg_match('@<td class="currency"><a href="/borsa/hisse-senetleri/(.*?)/"\s+target\s*=\s*"_blank"\s*><b id="h_b_ad_id_(.*?)"\s*>(.*?)</b></a></td>@si', $val, $name);
-    preg_match('@<td class="center" id="h_td_fiyat_id_(.*?)">(.*?)</td>@si', $val, $fiyat);
-    preg_match('@<td class="currency-(.*?)" id="h_td_yon_id_(.*?)"\s*>@si', $val, $yon);
-    preg_match('@<td class="center" id="h_td_yuzde_id_(.*?)">(.*?)</td>@si', $val, $yuzde);
-    preg_match('@<td class="center" id="h_td_zaman_id_(.*?)">(.*?)</td>@si', $val, $zaman);
-    $symbol = trim(wp_strip_all_tags($name[3] ?? ''));
-    if ( $symbol === '' ) { continue; }
-    $slug = trim($name[1] ?? '');
-    $key = trim($yuzde[1] ?? sanitize_title($symbol));
-    $direction = (isset($yon[1]) && $yon[1] === 'up') ? 'increase' : 'decrease';
-    $rows[] = array(
-      'symbol' => $symbol,
-      'slug' => $slug,
-      'key' => $key,
-      'price' => trim(wp_strip_all_tags($fiyat[2] ?? '-')),
-      'percent' => trim(wp_strip_all_tags($yuzde[2] ?? '-')),
-      'time' => trim(wp_strip_all_tags($zaman[2] ?? '-')),
-      'direction' => $direction,
-    );
-  }
-  return $rows;
-}
-
-$groups = array();
-foreach ( (array) ($table_data[1] ?? array()) as $i => $table_html ) {
-  $rows = pv_v255_live_borsa_rows_from_table($table_html);
-  if ( $rows ) { $groups[] = $rows; }
-}
-$all_rows = array_merge(...($groups ?: array(array())));
+$all_rows = function_exists('pv_live_borsa_rows') ? pv_live_borsa_rows($endex) : array();
 $total_count = count($all_rows);
 $up_count = count(array_filter($all_rows, static fn($r) => $r['direction'] === 'increase'));
 $down_count = max(0, $total_count - $up_count);
@@ -117,28 +76,41 @@ $tabs = array(
 <script>
 (function($){
   if (!$) return;
+  var endpoint = <?php echo wp_json_encode(admin_url('admin-ajax.php?action=pv_live_borsa&endex=' . rawurlencode($endex))); ?>;
+
   function canli() {
-    $.get("<?php echo esc_url(get_template_directory_uri() . '/api/canli_borsa.php'); ?>", function(data) {
-      var obj;
-      try { obj = $.parseJSON(data); } catch(e) { obj = null; }
-      if (!obj) return;
+    $.getJSON(endpoint, function(payload) {
+      if (!payload || !payload.success || !payload.data) return;
+      var obj = payload.data;
+
       $('.hisse_name').each(function(){
         var name = $(this).data('name');
         if (!name || !obj[name]) return;
+
         var $price = $('.' + name + '_fiyat');
-        var oldPrice = parseFloat(($price.first().text() || '').replace(',', '.'));
-        var newPrice = parseFloat(String(obj[name].fiyat || '').replace(',', '.'));
-        if (!isFinite(oldPrice) || !isFinite(newPrice) || oldPrice === newPrice) return;
-        $price.text(obj[name].fiyat);
-        $('.' + name + '_yuzde').text((oldPrice < newPrice ? '▲ ' : '▼ ') + obj[name].yuzde).removeClass('increase decrease').addClass(oldPrice < newPrice ? 'increase' : 'decrease');
+        var oldPrice = parseFloat(($price.first().text() || '').replace(/\./g, '').replace(',', '.'));
+        var newPrice = parseFloat(String(obj[name].fiyat || '').replace(/\./g, '').replace(',', '.'));
+
+        if (!isFinite(oldPrice) || !isFinite(newPrice)) return;
+
+        if (oldPrice !== newPrice) {
+          $price.text(obj[name].fiyat);
+          $('.' + name + '_yuzde')
+            .text((oldPrice < newPrice ? '▲ ' : '▼ ') + obj[name].yuzde)
+            .removeClass('increase decrease')
+            .addClass(oldPrice < newPrice ? 'increase' : 'decrease');
+
+          var $row = $('.' + name + '_bg');
+          $row.addClass(oldPrice < newPrice ? 'pv-live-flash-up' : 'pv-live-flash-down');
+          setTimeout(function(){ $row.removeClass('pv-live-flash-up pv-live-flash-down'); }, 1600);
+        }
+
         $('.' + name + '_zaman').text(obj[name].zaman);
-        var $row = $('.' + name + '_bg');
-        $row.addClass(oldPrice < newPrice ? 'pv-live-flash-up' : 'pv-live-flash-down');
-        setTimeout(function(){ $row.removeClass('pv-live-flash-up pv-live-flash-down'); }, 1600);
       });
     });
   }
-  setInterval(canli, 3000);
+
+  setInterval(canli, 5000);
 })(window.jQuery);
 </script>
 <?php get_footer(); ?>
