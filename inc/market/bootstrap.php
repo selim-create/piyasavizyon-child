@@ -36,9 +36,9 @@ function pv_market_cached_resource( $cache_file, $resource ) {
     }
 
     // Migrated resources must not silently repopulate from the BirFinans cache
-    // namespace. Currency, gold and crypto are child-provider-owned, so a
-    // missing or expired child cache must proceed to the child provider instead.
-    $migrated = in_array( $resource, array( 'currency', 'altin', 'coin' ), true );
+    // namespace. Currency, gold, parity and crypto are child-provider-owned, so
+    // a missing or expired child cache must proceed to the child provider.
+    $migrated = in_array( $resource, array( 'currency', 'altin', 'parite', 'coin' ), true );
     $data = ( $migrated && method_exists( $cache, 'get_current' ) )
         ? $cache->get_current( $cache_file )
         : $cache->get( $cache_file );
@@ -69,10 +69,10 @@ function pv_market_seed_existing_payload( $cache_file, $data ) {
 /**
  * Prime the legacy globals from the child-owned compatibility layer.
  *
- * Currency, gold and crypto are child-provider-owned and must not be mirrored
- * back from parent-populated globals, otherwise the parent would keep
+ * Currency, gold, parity and crypto are child-provider-owned and must not be
+ * mirrored back from parent-populated globals, otherwise the parent would keep
  * refreshing child cache timestamps and prevent the child providers from
- * becoming authoritative. Parity still uses the temporary legacy bridge.
+ * becoming authoritative. Borsa still uses the temporary legacy bridge.
  */
 function pv_market_prime_legacy_globals() {
     global $currency_data, $coin_data, $altin_data, $bist100_data, $parite_data, $borsa_data;
@@ -88,13 +88,9 @@ function pv_market_prime_legacy_globals() {
         $altin_data = $data;
     }
 
-    if ( ! empty( $parite_data ) && is_array( $parite_data ) ) {
-        pv_market_seed_existing_payload( 'parite.json', $parite_data );
-    } else {
-        $data = pv_market_cached_resource( 'parite.json', 'parite' );
-        if ( is_array( $data ) ) {
-            $parite_data = $data;
-        }
+    $data = pv_market_cached_resource( 'parite.json', 'parite' );
+    if ( is_array( $data ) ) {
+        $parite_data = $data;
     }
 
     $data = pv_market_cached_resource( 'coin.json', 'coin' );
