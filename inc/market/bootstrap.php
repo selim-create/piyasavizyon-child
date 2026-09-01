@@ -2,6 +2,7 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 require_once __DIR__ . '/cache.php';
+require_once __DIR__ . '/contracts.php';
 require_once __DIR__ . '/provider.php';
 
 function pv_market_cache_minutes() {
@@ -15,6 +16,18 @@ function pv_market_cache_minutes() {
     return max( 1, (int) apply_filters( 'pv_market_cache_minutes', $minutes ) );
 }
 
+function pv_market_resource_for_cache_file( $cache_file ) {
+    $map = array(
+        'doviz.json'  => 'currency',
+        'altin.json'  => 'altin',
+        'parite.json' => 'parite',
+        'coin.json'   => 'coin',
+        'borsa.json'  => 'borsa',
+    );
+
+    return isset( $map[ $cache_file ] ) ? $map[ $cache_file ] : '';
+}
+
 function pv_market_cached_resource( $cache_file, $resource ) {
     static $cache = null;
 
@@ -23,20 +36,22 @@ function pv_market_cached_resource( $cache_file, $resource ) {
     }
 
     $data = $cache->get( $cache_file );
-    if ( $data !== false ) {
+    if ( $data !== false && pv_market_payload_is_valid( $resource, $data ) ) {
         return $data;
     }
 
     $data = pv_market_provider_fetch( $resource );
-    if ( $data !== false && $data !== null && $data !== array() ) {
+    if ( pv_market_payload_is_valid( $resource, $data ) ) {
         $cache->set( $cache_file, $data );
+        return $data;
     }
 
-    return $data;
+    return false;
 }
 
 function pv_market_seed_existing_payload( $cache_file, $data ) {
-    if ( $data === false || $data === null || $data === '' || ( is_array( $data ) && $data === array() ) ) {
+    $resource = pv_market_resource_for_cache_file( $cache_file );
+    if ( $resource === '' || ! pv_market_payload_is_valid( $resource, $data ) ) {
         return false;
     }
 
