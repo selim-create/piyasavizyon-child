@@ -3,10 +3,9 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
  * Fetch top crypto assets from CoinGecko and normalize them into the legacy
- * Piyasa Vizyon coin payload contract. This provider is initially used only in
- * shadow/diagnostic mode and does not replace the live provider automatically.
+ * Piyasa Vizyon coin payload contract.
  */
-function pv_market_coingecko_shadow_fetch() {
+function pv_market_coingecko_fetch() {
     $url = add_query_arg(
         array(
             'vs_currency'              => 'try',
@@ -82,7 +81,8 @@ function pv_market_coingecko_shadow_fetch() {
         if ( ! empty( $row['last_updated'] ) ) {
             $timestamp = strtotime( (string) $row['last_updated'] );
             if ( $timestamp !== false ) {
-                $last_updated = wp_date( 'H:i', $timestamp );
+                // The legacy payload exposed the provider timestamp in UTC as H:i.
+                $last_updated = gmdate( 'H:i', $timestamp );
             }
         }
 
@@ -101,6 +101,13 @@ function pv_market_coingecko_shadow_fetch() {
     }
 
     return $payload;
+}
+
+/**
+ * Backward-compatible alias retained for the Phase 2B diagnostic commands.
+ */
+function pv_market_coingecko_shadow_fetch() {
+    return pv_market_coingecko_fetch();
 }
 
 function pv_market_coingecko_shadow_compare( $legacy_payload, $shadow_payload ) {
