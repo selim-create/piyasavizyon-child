@@ -37,13 +37,10 @@ function pv_market_payload_is_valid( $resource, $data ) {
         }
     }
 
-    // Borsa is allowed to be structurally valid with empty inner arrays because
-    // the provider is currently unavailable. Core datasets must contain at
-    // least one populated contract field before they can replace good cache.
-    if ( $resource === 'borsa' ) {
-        return true;
-    }
-
+    // A structurally correct payload is still unusable if every required field
+    // is empty. This is especially important for borsa: the unavailable legacy
+    // provider currently returns the full shape with empty inner arrays, which
+    // must not be cached or treated as real market data.
     foreach ( $required as $field ) {
         if ( ! empty( $data[ $field ] ) ) {
             return true;
