@@ -53,6 +53,27 @@ final class PV_Market_Cache {
         return $this->is_usable_data( $decoded['data'] ) ? $decoded['data'] : false;
     }
 
+    /**
+     * Read only the child-owned cache namespace.
+     *
+     * Migrated resources use this method so an expired/missing child cache
+     * reaches the child-owned provider instead of being silently repopulated
+     * from the historical BirFinans cache directory.
+     */
+    public function get_current( $file ) {
+        $file = sanitize_file_name( (string) $file );
+        if ( $file === '' ) {
+            return false;
+        }
+
+        $base = $this->uploads_base_dir();
+        if ( $base === '' ) {
+            return false;
+        }
+
+        return $this->read_file( $base . '/' . $this->directory . '/' . $file );
+    }
+
     public function get( $file ) {
         $file = sanitize_file_name( (string) $file );
         if ( $file === '' ) {
