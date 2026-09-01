@@ -5,9 +5,9 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  * Child-owned cache for Piyasa Vizyon market payloads.
  *
  * During the migration we can read the historical BirFinans cache as a
- * compatibility fallback. When a fresh legacy cache entry is consumed, it is
- * promoted into the Piyasa Vizyon cache so subsequent requests are served from
- * the child-owned namespace.
+ * compatibility fallback. When a fresh, usable legacy cache entry is consumed,
+ * it is promoted into the Piyasa Vizyon cache so subsequent requests are served
+ * from the child-owned namespace.
  */
 final class PV_Market_Cache {
     private $ttl;
@@ -24,6 +24,18 @@ final class PV_Market_Cache {
         return ! empty( $uploads['basedir'] ) ? untrailingslashit( $uploads['basedir'] ) : '';
     }
 
+    private function is_usable_data( $data ) {
+        if ( $data === false || $data === null || $data === '' ) {
+            return false;
+        }
+
+        if ( is_array( $data ) && $data === array() ) {
+            return false;
+        }
+
+        return true;
+    }
+
     private function read_file( $path ) {
         if ( ! $path || ! is_readable( $path ) ) {
             return false;
@@ -38,7 +50,7 @@ final class PV_Market_Cache {
             return false;
         }
 
-        return $decoded['data'];
+        return $this->is_usable_data( $decoded['data'] ) ? $decoded['data'] : false;
     }
 
     public function get( $file ) {
@@ -71,7 +83,7 @@ final class PV_Market_Cache {
 
     public function set( $file, $data ) {
         $file = sanitize_file_name( (string) $file );
-        if ( $file === '' ) {
+        if ( $file === '' || ! $this->is_usable_data( $data ) ) {
             return false;
         }
 
