@@ -4,6 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 require_once __DIR__ . '/cache.php';
 require_once __DIR__ . '/contracts.php';
 require_once __DIR__ . '/provider.php';
+require_once __DIR__ . '/mynet.php';
 
 function pv_market_cache_minutes() {
     global $bp_options;
