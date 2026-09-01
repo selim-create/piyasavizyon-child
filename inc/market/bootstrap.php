@@ -36,9 +36,10 @@ function pv_market_cached_resource( $cache_file, $resource ) {
     }
 
     // Migrated resources must not silently repopulate from the BirFinans cache
-    // namespace. Crypto is the first migrated resource, so a missing/expired
-    // child coin cache must proceed to the CoinGecko provider instead.
-    $data = ( $resource === 'coin' && method_exists( $cache, 'get_current' ) )
+    // namespace. Currency and crypto are now child-provider-owned, so a missing
+    // or expired child cache must proceed to the child provider instead.
+    $migrated = in_array( $resource, array( 'currency', 'coin' ), true );
+    $data = ( $migrated && method_exists( $cache, 'get_current' ) )
         ? $cache->get_current( $cache_file )
         : $cache->get( $cache_file );
 
@@ -68,23 +69,18 @@ function pv_market_seed_existing_payload( $cache_file, $data ) {
 /**
  * Prime the legacy globals from the child-owned compatibility layer.
  *
- * BirFinans can populate several market globals before the child theme reaches
- * after_setup_theme. During migration we still mirror untouched legacy payloads
- * for currency, gold and parity. Crypto is now child-provider-owned: it always
- * reads the child cache/provider path so the parent can no longer refresh and
- * pin the legacy coin payload indefinitely.
+ * Currency and crypto are child-provider-owned and must not be mirrored back
+ * from parent-populated globals, otherwise the parent would keep refreshing the
+ * child cache timestamp and prevent the child providers from becoming
+ * authoritative. Gold and parity still use the temporary legacy bridge.
  */
 function pv_market_prime_legacy_globals() {
     global $currency_data, $coin_data, $altin_data, $bist100_data, $parite_data, $borsa_data;
     global $borsa_artanlar_data, $borsa_azalanlar_data, $borsa_islem_gorenler_data;
 
-    if ( ! empty( $currency_data ) && is_array( $currency_data ) ) {
-        pv_market_seed_existing_payload( 'doviz.json', $currency_data );
-    } else {
-        $data = pv_market_cached_resource( 'doviz.json', 'currency' );
-        if ( is_array( $data ) ) {
-            $currency_data = $data;
-        }
+    $data = pv_market_cached_resource( 'doviz.json', 'currency' );
+    if ( is_array( $data ) ) {
+        $currency_data = $data;
     }
 
     if ( ! empty( $altin_data ) && is_array( $altin_data ) ) {
@@ -105,12 +101,6 @@ function pv_market_prime_legacy_globals() {
         }
     }
 
-    // Crypto has completed the first provider migration. Do not mirror an
-    // already-populated parent $coin_data back into the child cache; otherwise
-    // its timestamp would be reset on every request and CoinGecko would never
-    // become authoritative. A fresh child cache is used until TTL expiry, then
-    // pv_market_provider_fetch('coin') requests CoinGecko first and falls back
-    // to BirFinans only if the child provider cannot produce a valid payload.
     $data = pv_market_cached_resource( 'coin.json', 'coin' );
     if ( is_array( $data ) ) {
         $coin_data = $data;
@@ -137,17 +127,9 @@ function pv_market_prime_legacy_globals() {
     /**
      * Temporary runtime guard for the historical pv_v7_ensure_market_data().
      *
-     * That legacy helper decides whether to load BirFinans DataCache.php and
-     * api_helper.php by checking whether currency, gold and BIST globals are
-     * non-empty. The current BirFinans borsa provider returns an empty payload,
-     * which would otherwise force the old parent API bootstrap even after the
-     * child-owned cache has successfully supplied every usable core dataset.
-     *
      * Once currency, gold, parity and crypto are all ready, expose an explicit
-     * non-cacheable "unavailable" BIST marker. Existing rendering already falls
-     * back to 0/0 for missing BIST values, so this does not invent market data;
-     * it only prevents the obsolete parent cache/bootstrap path from running.
-     * The marker is never written to the child market cache.
+     * non-cacheable "unavailable" BIST marker so the obsolete parent market
+     * bootstrap is not forced only because the historical BIST payload is empty.
      */
     $core_market_ready =
         ! empty( $currency_data ) && is_array( $currency_data ) &&
@@ -165,6 +147,6 @@ function pv_market_prime_legacy_globals() {
 }
 
 // after_setup_theme runs after parent and child functions files are loaded. This
-// is the earliest safe point to mirror any parent-populated globals into the
-// child-owned cache without changing the visible market payloads.
+// is the earliest safe point to replace migrated globals with child-owned data
+// while preserving temporary bridges for resources not migrated yet.
 add_action( 'after_setup_theme', 'pv_market_prime_legacy_globals', 1 );
