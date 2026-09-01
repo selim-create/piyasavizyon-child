@@ -1,13 +1,15 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
+require_once __DIR__ . '/providers/coingecko.php';
+
 /**
  * Fetch a raw market payload through the Piyasa Vizyon provider seam.
  *
- * A custom provider can short-circuit this function with the
- * `pv_market_provider_response` filter. While BirFinans is still active we
- * intentionally keep its get_data_service() function as the final fallback so
- * production payload shapes do not change during Phase 2A.
+ * Child-owned providers are preferred resource-by-resource. While BirFinans is
+ * still active its get_data_service() function remains the final fallback for
+ * resources that have not yet been migrated, and as a temporary failover for
+ * crypto if CoinGecko is unavailable.
  */
 function pv_market_provider_fetch( $resource ) {
     $resource = ltrim( (string) $resource, '/' );
@@ -18,6 +20,15 @@ function pv_market_provider_fetch( $resource ) {
     $filtered = apply_filters( 'pv_market_provider_response', null, $resource );
     if ( $filtered !== null ) {
         return $filtered;
+    }
+
+    if ( $resource === 'coin' && function_exists( 'pv_market_coingecko_fetch' ) ) {
+        $coin_data = pv_market_coingecko_fetch();
+        if ( ! is_wp_error( $coin_data ) ) {
+            if ( ! function_exists( 'pv_market_payload_is_valid' ) || pv_market_payload_is_valid( 'coin', $coin_data ) ) {
+                return $coin_data;
+            }
+        }
     }
 
     if ( function_exists( 'get_data_service' ) ) {
