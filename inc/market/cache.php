@@ -5,8 +5,9 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  * Child-owned cache for Piyasa Vizyon market payloads.
  *
  * During the migration we can read the historical BirFinans cache as a
- * compatibility fallback, but all new writes go to a Piyasa Vizyon-owned
- * directory.
+ * compatibility fallback. When a fresh legacy cache entry is consumed, it is
+ * promoted into the Piyasa Vizyon cache so subsequent requests are served from
+ * the child-owned namespace.
  */
 final class PV_Market_Cache {
     private $ttl;
@@ -56,9 +57,16 @@ final class PV_Market_Cache {
             return $current;
         }
 
-        // Temporary read-only bridge to the historical cache. This lets the
-        // migration start without forcing fresh provider calls on deployment.
-        return $this->read_file( $base . '/' . $this->legacy_directory . '/' . $file );
+        // Temporary bridge to the historical cache. Promote a valid legacy
+        // entry into the child-owned cache so we can progressively stop relying
+        // on the BirFinans cache directory without forcing immediate refetches.
+        $legacy = $this->read_file( $base . '/' . $this->legacy_directory . '/' . $file );
+        if ( $legacy !== false ) {
+            $this->set( $file, $legacy );
+            return $legacy;
+        }
+
+        return false;
     }
 
     public function set( $file, $data ) {
