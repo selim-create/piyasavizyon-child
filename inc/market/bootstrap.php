@@ -5,6 +5,7 @@ require_once __DIR__ . '/cache.php';
 require_once __DIR__ . '/contracts.php';
 require_once __DIR__ . '/provider.php';
 require_once __DIR__ . '/mynet.php';
+require_once __DIR__ . '/live-borsa.php';
 
 function pv_market_cache_minutes() {
     global $bp_options;
@@ -36,9 +37,6 @@ function pv_market_cached_resource( $cache_file, $resource ) {
         $cache = new PV_Market_Cache( pv_market_cache_minutes() );
     }
 
-    // Migrated resources must not silently repopulate from the BirFinans cache
-    // namespace. Currency, gold, parity and crypto are child-provider-owned, so
-    // a missing or expired child cache must proceed to the child provider.
     $migrated = in_array( $resource, array( 'currency', 'altin', 'parite', 'coin' ), true );
     $data = ( $migrated && method_exists( $cache, 'get_current' ) )
         ? $cache->get_current( $cache_file )
@@ -67,14 +65,6 @@ function pv_market_seed_existing_payload( $cache_file, $data ) {
     return $cache->set( $cache_file, $data );
 }
 
-/**
- * Prime the legacy globals from the child-owned compatibility layer.
- *
- * Currency, gold, parity and crypto are child-provider-owned and must not be
- * mirrored back from parent-populated globals, otherwise the parent would keep
- * refreshing child cache timestamps and prevent the child providers from
- * becoming authoritative. Borsa still uses the temporary legacy bridge.
- */
 function pv_market_prime_legacy_globals() {
     global $currency_data, $coin_data, $altin_data, $bist100_data, $parite_data, $borsa_data;
     global $borsa_artanlar_data, $borsa_azalanlar_data, $borsa_islem_gorenler_data;
@@ -117,13 +107,6 @@ function pv_market_prime_legacy_globals() {
         }
     }
 
-    /**
-     * Temporary runtime guard for the historical pv_v7_ensure_market_data().
-     *
-     * Once currency, gold, parity and crypto are all ready, expose an explicit
-     * non-cacheable "unavailable" BIST marker so the obsolete parent market
-     * bootstrap is not forced only because the historical BIST payload is empty.
-     */
     $core_market_ready =
         ! empty( $currency_data ) && is_array( $currency_data ) &&
         ! empty( $altin_data ) && is_array( $altin_data ) &&
@@ -139,7 +122,4 @@ function pv_market_prime_legacy_globals() {
     }
 }
 
-// after_setup_theme runs after parent and child functions files are loaded. This
-// is the earliest safe point to replace migrated globals with child-owned data
-// while preserving temporary bridges for resources not migrated yet.
 add_action( 'after_setup_theme', 'pv_market_prime_legacy_globals', 1 );
