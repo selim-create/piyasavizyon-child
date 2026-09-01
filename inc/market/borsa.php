@@ -18,28 +18,17 @@ function pv_market_borsa_index_map() {
     );
 }
 
-function pv_market_borsa_index_detail( $code ) {
-    $map = pv_market_borsa_index_map();
-    $code = strtolower( sanitize_key( (string) $code ) );
-
-    if ( ! isset( $map[ $code ] ) ) {
+function pv_market_parse_mynet_index_detail_html( $html, $slug, $fallback_name = '' ) {
+    if ( ! is_string( $html ) || trim( $html ) === '' ) {
         return array();
     }
 
-    $cache_key = 'pv_borsa_index_' . $code;
-    $cached = get_transient( $cache_key );
-    if ( is_array( $cached ) && ! empty( $cached['price'] ) ) {
-        return $cached;
-    }
-
-    $html = pv_market_fetch_mynet( $map[ $code ]['path'] );
-    if ( $html === '' ) {
-        return array();
-    }
-
-    $detail = array(
-        'code'       => $code,
-        'name'       => $map[ $code ]['label'],
+    $slug         = sanitize_title( (string) $slug );
+    $dynamic_code = strtoupper( (string) strtok( $slug, '-' ) );
+    $detail       = array(
+        'slug'       => $slug,
+        'code'       => strtolower( $dynamic_code ),
+        'name'       => (string) $fallback_name,
         'price'      => '',
         'change'     => '',
         'change_pct' => '',
@@ -57,8 +46,8 @@ function pv_market_borsa_index_detail( $code ) {
 
     if ( class_exists( 'DOMDocument' ) ) {
         $previous = libxml_use_internal_errors( true );
-        $dom = new DOMDocument();
-        $loaded = $dom->loadHTML( '<?xml encoding="utf-8" ?>' . $html );
+        $dom      = new DOMDocument();
+        $loaded   = $dom->loadHTML( '<?xml encoding="utf-8" ?>' . $html );
         libxml_clear_errors();
         libxml_use_internal_errors( $previous );
 
@@ -84,8 +73,10 @@ function pv_market_borsa_index_detail( $code ) {
                 if ( $value ) {
                     $text = pv_market_decode_text( $value->textContent );
                     if ( preg_match( '/(-?[0-9.,]+)\s*\/\s*(-?[0-9.,]+)\s*%?/u', $text, $parts ) ) {
-                        $detail['change'] = $parts[1];
+                        $detail['change']     = $parts[1];
                         $detail['change_pct'] = $parts[2];
+                    } elseif ( preg_match( '/(-?[0-9][0-9.,]*)\s*%/u', $text, $parts ) ) {
+                        $detail['change_pct'] = $parts[1];
                     }
                 }
             }
@@ -104,6 +95,25 @@ function pv_market_borsa_index_detail( $code ) {
         }
     }
 
+    foreach ( $detail['stats'] as $label => $value ) {
+        $normalized = pv_market_normalize_label( $label );
+
+        if ( $detail['price'] === '' && $normalized === 'son deger' ) {
+            $detail['price'] = $value;
+        }
+
+        if ( $detail['change'] === '' && $normalized === 'gunluk degisim' ) {
+            $detail['change'] = $value;
+        }
+
+        if (
+            $detail['change_pct'] === '' &&
+            ( $normalized === 'gunluk degisim %' || $normalized === 'gunluk degisim (%)' )
+        ) {
+            $detail['change_pct'] = ltrim( (string) $value, '%' );
+        }
+    }
+
     if ( preg_match( '@initChartData\(\{(.*?)\}\)@si', $html, $match ) ) {
         $chart = json_decode( '{' . $match[1] . '}', true );
         if ( isset( $chart['data'] ) && is_array( $chart['data'] ) ) {
@@ -111,22 +121,62 @@ function pv_market_borsa_index_detail( $code ) {
         }
     }
 
-    if ( $detail['price'] === '' ) {
-        $dynamic_class = 'dynamic-price-' . strtoupper( $code );
+    if ( $detail['price'] === '' && $dynamic_code !== '' ) {
+        $dynamic_class = 'dynamic-price-' . $dynamic_code;
         if ( preg_match( '@<span[^>]*class="[^"]*' . preg_quote( $dynamic_class, '@' ) . '[^"]*"[^>]*>(.*?)</span>@si', $html, $match ) ) {
             $detail['price'] = pv_market_decode_text( $match[1] );
         }
     }
 
-    if ( $detail['change_pct'] === '' ) {
-        $dynamic_class = 'dynamic-direction-' . strtoupper( $code );
+    if ( $detail['change_pct'] === '' && $dynamic_code !== '' ) {
+        $dynamic_class = 'dynamic-direction-' . $dynamic_code;
         if ( preg_match( '@<span[^>]*class="[^"]*' . preg_quote( $dynamic_class, '@' ) . '[^"]*"[^>]*>(.*?)</span>@si', $html, $match ) ) {
             $detail['change_pct'] = ltrim( pv_market_decode_text( $match[1] ), '%' );
         }
     }
 
+    return $detail;
+}
+
+function pv_market_mynet_index_detail( $slug, $fallback_name = '' ) {
+    $slug = sanitize_title( (string) $slug );
+    if ( $slug === '' ) {
+        return array();
+    }
+
+    $cache_key = 'pv_index_detail_' . md5( $slug );
+    $cached    = get_transient( $cache_key );
+    if ( is_array( $cached ) && ! empty( $cached['price'] ) ) {
+        return $cached;
+    }
+
+    $html = pv_market_fetch_mynet( '/borsa/endeks/' . rawurlencode( $slug ) . '/' );
+    if ( $html === '' ) {
+        return array();
+    }
+
+    $detail = pv_market_parse_mynet_index_detail_html( $html, $slug, $fallback_name );
     if ( ! empty( $detail['price'] ) ) {
         set_transient( $cache_key, $detail, MINUTE_IN_SECONDS );
+    }
+
+    return $detail;
+}
+
+function pv_market_borsa_index_detail( $code ) {
+    $map  = pv_market_borsa_index_map();
+    $code = strtolower( sanitize_key( (string) $code ) );
+
+    if ( ! isset( $map[ $code ] ) ) {
+        return array();
+    }
+
+    $path_parts = array_values( array_filter( explode( '/', trim( $map[ $code ]['path'], '/' ) ) ) );
+    $slug       = $path_parts ? end( $path_parts ) : '';
+    $detail     = pv_market_mynet_index_detail( $slug, $map[ $code ]['label'] );
+
+    if ( $detail ) {
+        $detail['code'] = $code;
     }
 
     return $detail;
@@ -143,9 +193,16 @@ function pv_market_borsa_chart_windows() {
 }
 
 function pv_market_route_borsa_template( $template ) {
-    if ( basename( (string) $template ) === 'borsa-page.php' ) {
+    $base = basename( (string) $template );
+
+    if ( $base === 'borsa-page.php' ) {
         return __DIR__ . '/views/borsa.php';
     }
+
+    if ( $base === 'endeks-detay.php' ) {
+        return __DIR__ . '/views/endeks-detay.php';
+    }
+
     return $template;
 }
 add_filter( 'template_include', 'pv_market_route_borsa_template', 100 );
