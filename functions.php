@@ -9,3 +9,4 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  */
 require_once __DIR__ . '/functions-legacy.php';
 require_once __DIR__ . '/inc/registration-security.php';
+require_once __DIR__ . '/inc/registration-security-hotfix.php';
