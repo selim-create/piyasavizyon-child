@@ -26,8 +26,7 @@ add_filter( 'pre_get_document_title', function() use ( $name ) {
 
 get_header();
 ?>
-<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-<script src="<?php echo esc_url( get_template_directory_uri() . '/js/highcharts.js' ); ?>"></script>
+<script src="https://code.highcharts.com/7.1.1/highcharts.js"></script>
 <div class="site-wrapper pv-market-native pv-market-stock-detail-native">
     <section class="content home">
         <div class="container-wrap">
