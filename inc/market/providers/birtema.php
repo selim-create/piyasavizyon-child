@@ -34,10 +34,63 @@ function pv_market_birtema_license() {
 }
 
 /**
+ * Preserve the historical Piyasa Vizyon gold identifier for ONS.
+ *
+ * BirTema currently returns the canonical string key `altin-ons` and detail slug
+ * `altin-ons-fiyati`. Existing Piyasa Vizyon URLs and templates historically use
+ * `ons-altin-usd` / `ons-altin-usd-fiyati`. Numeric aliases are left untouched;
+ * only the string-key view is renamed so the legacy public contract remains
+ * stable while the upstream service can evolve independently.
+ */
+function pv_market_birtema_normalize_gold( $payload ) {
+    if ( ! is_array( $payload ) || $payload === array() ) {
+        return $payload;
+    }
+
+    $dual_fields = array(
+        'altin_price',
+        'altin_price_buying',
+        'altin_price_selling',
+        'altin_update',
+        'altin_time',
+        'altin_rate',
+        'altin_name',
+        'altin_full_name',
+    );
+
+    foreach ( $dual_fields as $field ) {
+        if ( ! isset( $payload[ $field ] ) || ! is_array( $payload[ $field ] ) || ! array_key_exists( 'altin-ons', $payload[ $field ] ) ) {
+            continue;
+        }
+
+        $normalized = array();
+        foreach ( $payload[ $field ] as $key => $value ) {
+            $normalized[ $key === 'altin-ons' ? 'ons-altin-usd' : $key ] = $value;
+        }
+        $payload[ $field ] = $normalized;
+    }
+
+    if ( isset( $payload['altin_key'] ) && is_array( $payload['altin_key'] ) && array_key_exists( 'altin-ons', $payload['altin_key'] ) ) {
+        $normalized = array();
+        foreach ( $payload['altin_key'] as $key => $value ) {
+            if ( $key === 'altin-ons' ) {
+                $normalized['ons-altin-usd'] = 'ons-altin-usd-fiyati';
+                continue;
+            }
+            $normalized[ $key ] = $value;
+        }
+        $payload['altin_key'] = $normalized;
+    }
+
+    return $payload;
+}
+
+/**
  * Fetch an entitled market payload directly from BirTema's data service.
  *
  * This replaces the legacy BirFinans get_data_service() transport one resource
- * at a time while preserving the upstream payload exactly as returned.
+ * at a time while preserving the upstream payload contract expected by Piyasa
+ * Vizyon. Resource-specific compatibility normalization is applied after fetch.
  */
 function pv_market_birtema_fetch( $resource ) {
     $resource = sanitize_key( (string) $resource );
@@ -88,6 +141,10 @@ function pv_market_birtema_fetch( $resource ) {
     $payload = json_decode( wp_remote_retrieve_body( $response ), true );
     if ( ! is_array( $payload ) || $payload === array() ) {
         return new WP_Error( 'pv_birtema_payload', 'BirTema payload is empty or invalid.' );
+    }
+
+    if ( $resource === 'altin' ) {
+        $payload = pv_market_birtema_normalize_gold( $payload );
     }
 
     return $payload;
