@@ -63,9 +63,10 @@ function pv_market_seed_existing_payload( $cache_file, $data ) {
  * Prime the legacy globals from the child-owned compatibility layer.
  *
  * BirFinans can populate several market globals before the child theme reaches
- * after_setup_theme. When that happens, seed those already-loaded payloads into
- * the child-owned cache instead of skipping them. If a global is empty, fall
- * back to the compatibility cache/provider path and keep the historical shape.
+ * after_setup_theme. During migration we still mirror untouched legacy payloads
+ * for currency, gold and parity. Crypto is now child-provider-owned: it always
+ * reads the child cache/provider path so the parent can no longer refresh and
+ * pin the legacy coin payload indefinitely.
  */
 function pv_market_prime_legacy_globals() {
     global $currency_data, $coin_data, $altin_data, $bist100_data, $parite_data, $borsa_data;
@@ -98,13 +99,15 @@ function pv_market_prime_legacy_globals() {
         }
     }
 
-    if ( ! empty( $coin_data ) && is_array( $coin_data ) ) {
-        pv_market_seed_existing_payload( 'coin.json', $coin_data );
-    } else {
-        $data = pv_market_cached_resource( 'coin.json', 'coin' );
-        if ( is_array( $data ) ) {
-            $coin_data = $data;
-        }
+    // Crypto has completed the first provider migration. Do not mirror an
+    // already-populated parent $coin_data back into the child cache; otherwise
+    // its timestamp would be reset on every request and CoinGecko would never
+    // become authoritative. A fresh child cache is used until TTL expiry, then
+    // pv_market_provider_fetch('coin') requests CoinGecko first and falls back
+    // to BirFinans only if the child provider cannot produce a valid payload.
+    $data = pv_market_cached_resource( 'coin.json', 'coin' );
+    if ( is_array( $data ) ) {
+        $coin_data = $data;
     }
 
     if ( ! empty( $borsa_data ) && is_array( $borsa_data ) ) {
