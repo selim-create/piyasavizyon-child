@@ -17,7 +17,7 @@ $active = ($path === 'gelecek-halka-arzlar') ? 'gelecek' : 'takvim';
                 </ul>
             </div>
 
-            <header class="pv-ipo-page-hero">
+            <div class="pv-ipo-page-hero">
                 <div>
                     <span class="pv-eyebrow">Piyasa Vizyon</span>
                     <h1>Halka Arz Takvimi</h1>
@@ -27,7 +27,7 @@ $active = ($path === 'gelecek-halka-arzlar') ? 'gelecek' : 'takvim';
                     <span><b><?php echo esc_html(count(pv_v7_ipo_collect_ids('takvim', 300))); ?></b> Takvim Kaydı</span>
                     <span><b><?php echo esc_html(count(pv_v7_ipo_collect_ids('gelecek', 300))); ?></b> Gelecek Arz</span>
                 </div>
-            </header>
+            </div>
 
             <?php pv_v7_ipo_render_ad('pv-ipo-ad-top'); ?>
 

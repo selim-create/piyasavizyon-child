@@ -7,7 +7,7 @@
   <article class="pv-inner-card pv-single-card">
     <?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
       <div class="pv-entry-content pv-single-content">
-        <header class="pv-single-head pv-content-head">
+        <div class="pv-single-head pv-content-head">
           <?php $cats = get_the_category(); if($cats): ?>
             <div class="pv-single-cats"><?php foreach($cats as $cat): ?><a href="<?php echo esc_url(get_category_link($cat)); ?>"><?php echo esc_html($cat->name); ?></a><?php endforeach; ?></div>
           <?php endif; ?>
@@ -18,8 +18,9 @@
             <?php if(get_the_author()): ?><span><i class="fa-regular fa-user"></i> <?php echo esc_html(get_the_author()); ?></span><?php endif; ?>
           </div>
           <?php if ( has_excerpt() ) : ?><p class="pv-single-excerpt"><?php echo esc_html(get_the_excerpt()); ?></p><?php endif; ?>
-        </header>
+        </div>
         <?php if ( has_post_thumbnail() ) : ?><figure class="pv-inner-featured"><?php the_post_thumbnail('large'); ?></figure><?php endif; ?>
+        <?php pv_v7_gam_content_ad(); ?>
         <?php the_content(); ?>
         <?php wp_link_pages(array('before'=>'<div class="pv-page-links">','after'=>'</div>')); ?>
       </div>

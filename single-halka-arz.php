@@ -33,7 +33,7 @@ $investors = array(
             </div>
 
             <article <?php post_class('pv-ipo-single-article'); ?>>
-                <header class="pv-ipo-single-hero">
+                <div class="pv-ipo-single-hero">
                     <div class="pv-ipo-company-side">
                         <div class="pv-ipo-logo-large">
                             <?php if ($thumb) : ?>
@@ -57,7 +57,7 @@ $investors = array(
                         <?php if ($price) : ?><div><span>Fiyat</span><strong><?php echo esc_html($price); ?></strong></div><?php endif; ?>
                         <?php if ($value) : ?><div><span>Halka Arz Büyüklüğü</span><strong><?php echo esc_html($value); ?></strong></div><?php endif; ?>
                     </div>
-                </header>
+                </div>
 
                 <?php pv_v7_ipo_render_ad('pv-ipo-ad-top'); ?>
 

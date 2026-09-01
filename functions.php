@@ -24,6 +24,29 @@ function pv_v7_assets() {
 }
 add_action('wp_enqueue_scripts', 'pv_v7_assets', 50);
 
+/*
+ * v2.73.0 cache deployment guard.
+ *
+ * LiteSpeed may keep an HTML page that points to a combined CSS file removed during a theme
+ * update. On the first uncached request after a new theme build, purge its page/asset cache once.
+ * The saved build value prevents this from running on every request.
+ */
+function pv_v7_purge_cache_after_theme_update() {
+    $build = '2.73.0';
+    $saved = (string) get_option('pv_child_theme_build', '');
+
+    if ($saved === $build) {
+        return;
+    }
+
+    update_option('pv_child_theme_build', $build, false);
+
+    if (has_action('litespeed_purge_all')) {
+        do_action('litespeed_purge_all');
+    }
+}
+add_action('init', 'pv_v7_purge_cache_after_theme_update', 1);
+
 
 /**
  * Add stable body classes for finance/market plugin pages.
@@ -162,9 +185,19 @@ function pv_v7_codes_page() {
     submit_button('Kaydet');
     echo '</form></div>';
 }
-function pv_v7_print_head_code(){ echo "
-".get_option('pv_v7_head_code','')."
-"; }
+function pv_v7_print_head_code(){
+    $code = (string) get_option('pv_v7_head_code', '');
+
+    // Eski modal snippet'i, hedef elemanlar kaldırıldığında tüm head JS akışını hata ile kesmesin.
+    if (strpos($code, 'if (btn) btn.onclick') === false) {
+        $code = str_replace('btn.onclick = function() {', 'if (btn) btn.onclick = function() {', $code);
+    }
+    if (strpos($code, 'if (span) span.onclick') === false) {
+        $code = str_replace('span.onclick = function() {', 'if (span) span.onclick = function() {', $code);
+    }
+
+    echo "\n" . $code . "\n";
+}
 add_action('wp_head','pv_v7_print_head_code', 2);
 function pv_v7_print_body_code(){ echo "
 ".get_option('pv_v7_body_code','')."

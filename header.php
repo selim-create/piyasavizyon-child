@@ -1,10 +1,7 @@
 <?php if ( ! defined( 'ABSPATH' ) ) { exit; } ?><!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
-<meta charset="<?php bloginfo('charset'); ?>">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<?php wp_head(); ?>
-	<!-- Google tag (gtag.js) -->
+<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-0W2WYS6P7F"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -13,6 +10,9 @@
 
   gtag('config', 'G-0W2WYS6P7F');
 </script>
+<meta charset="<?php bloginfo('charset'); ?>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<?php wp_head(); ?>
 </head>
 <body <?php body_class(); ?>><?php wp_body_open(); ?>
 <?php

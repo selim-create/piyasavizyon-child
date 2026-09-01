@@ -5,7 +5,7 @@
 </div>
 <main class="wrap pv-inner-layout pv-archive-layout">
   <section class="pv-inner-card pv-archive-card">
-    <header class="pv-archive-head"><h1 class="pv-inner-title"><?php the_archive_title(); ?></h1><?php if ( get_the_archive_description() ) : ?><div class="pv-archive-desc"><?php the_archive_description(); ?></div><?php endif; ?></header>
+    <div class="pv-archive-head"><h1 class="pv-inner-title"><?php the_archive_title(); ?></h1><?php if ( get_the_archive_description() ) : ?><div class="pv-archive-desc"><?php the_archive_description(); ?></div><?php endif; ?></div>
     <div class="pv-archive-list">
     <?php if ( have_posts() ) : while ( have_posts() ) : the_post(); $img = pv_v7_img(get_the_ID()); ?>
       <a class="pv-archive-item" href="<?php the_permalink(); ?>">

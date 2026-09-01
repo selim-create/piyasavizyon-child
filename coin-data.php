@@ -168,7 +168,7 @@ $daily_points = $current_coin ? pv_v7_crypto_daily_points($current_coin['slug'],
                     </div>
 
                     <?php if ($current_coin) : ?>
-                        <header class="pv-crypto-detail-hero">
+                        <div class="pv-crypto-detail-hero">
                             <div class="pv-crypto-title-wrap">
                                 <?php echo function_exists('pv_v7_coin_avatar') ? pv_v7_coin_avatar($current_coin['symbol'], $current_coin['name'], 'lg') : '<span class="pv-coin-avatar pv-coin-avatar-lg">' . esc_html(mb_substr($current_coin['symbol'] ?: $current_coin['name'], 0, 3, 'UTF-8')) . '</span>'; ?>
                                 <div>
@@ -181,7 +181,7 @@ $daily_points = $current_coin ? pv_v7_crypto_daily_points($current_coin['slug'],
                                 <strong><?php echo esc_html($current_coin['price']); ?></strong>
                                 <em class="subtract <?php echo esc_attr($crease_status); ?>">% <?php echo esc_html($current_coin['rate']); ?></em>
                             </div>
-                        </header>
+                        </div>
 
                         <div class="pv-market-detail-content pv-crypto-detail-content">
                             <div class="mainContent onsAltin">

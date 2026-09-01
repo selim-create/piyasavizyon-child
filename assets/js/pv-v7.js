@@ -698,13 +698,16 @@ document.addEventListener('click', function(e){
       document.documentElement.style.setProperty('--pv-h-admin', admin + 'px');
       if(identity){
         var fixed = document.body.classList.contains('pv-header-identity-fixed');
+        var mobileFixed = document.body.classList.contains('pv-mobile-header-fixed');
         if(fixed){ document.body.classList.remove('pv-header-identity-fixed'); }
+        if(mobileFixed){ document.body.classList.remove('pv-mobile-header-fixed'); }
         var rect = identity.getBoundingClientRect();
         var h = Math.ceil(rect.height || 0);
         initialTop = Math.max(0, Math.round(rect.top + (window.pageYOffset || document.documentElement.scrollTop || 0) - admin));
         document.documentElement.style.setProperty('--pv-h-identity-h', h + 'px');
         document.documentElement.style.setProperty('--pv-header-height', h + 'px');
         if(fixed){ document.body.classList.add('pv-header-identity-fixed'); }
+        if(mobileFixed){ document.body.classList.add('pv-mobile-header-fixed'); }
       }
     }
     function sync(){
@@ -712,6 +715,7 @@ document.addEventListener('click', function(e){
       var shouldFix = identity && y > initialTop;
       document.body.classList.toggle('pv-header-scrolled', y > 92);
       document.body.classList.toggle('pv-header-identity-fixed', !!shouldFix);
+      document.body.classList.toggle('pv-mobile-header-fixed', !!shouldFix && window.matchMedia('(max-width: 980px)').matches);
       ticking = false;
     }
     function requestSync(){
@@ -753,6 +757,56 @@ document.addEventListener('click', function(e){
         }
       });
     }
+  });
+})();
+
+/* === v2.72: measure late-loading ad creatives so their slots never crop or drift === */
+(function(){
+  function ready(fn){ if(document.readyState !== 'loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
+  ready(function(){
+    var selector = '.pv-header-masthead.pv-ad-slot,.ad-mobile-masthead.pv-ad-slot,.pv-gam-ad-mobile';
+
+    function elementHeight(el){
+      if(!el) return 0;
+      var rect = el.getBoundingClientRect ? el.getBoundingClientRect() : null;
+      var attr = parseInt(el.getAttribute && el.getAttribute('height') || '', 10);
+      return Math.ceil((rect && rect.height) || attr || el.offsetHeight || 0);
+    }
+
+    function syncSlot(slot){
+      if(!slot || slot.classList.contains('pv-ad-is-empty') || slot.classList.contains('pv-ad-empty')) return;
+      var maxH = 0;
+      slot.querySelectorAll('iframe,img,ins,.adbox,.pv-widget,[id^="div-gpt"] > div').forEach(function(el){
+        maxH = Math.max(maxH, elementHeight(el));
+      });
+      var mobile = window.matchMedia('(max-width: 980px)').matches;
+      var fallback = mobile ? 100 : 90;
+      if(maxH > 0){
+        if(mobile && maxH >= 220) maxH = 250;
+        else if(mobile && maxH >= 130) maxH = 150;
+        var measured = Math.max(fallback,maxH) + 'px';
+        if(slot.style.getPropertyValue('--pv-ad-measured-height') !== measured){ slot.style.setProperty('--pv-ad-measured-height', measured); }
+      } else {
+        var fallbackValue = fallback + 'px';
+        if(slot.style.getPropertyValue('--pv-ad-measured-height') !== fallbackValue){ slot.style.setProperty('--pv-ad-measured-height', fallbackValue); }
+      }
+    }
+
+    function syncAll(){ document.querySelectorAll(selector).forEach(syncSlot); }
+    var observer = new MutationObserver(function(records){
+      records.forEach(function(record){
+        var slot = record.target.closest ? record.target.closest(selector) : null;
+        if(slot) syncSlot(slot);
+      });
+    });
+    document.querySelectorAll(selector).forEach(function(slot){
+      observer.observe(slot,{childList:true,subtree:true,attributes:true,attributeFilter:['height','width','style','class']});
+    });
+    syncAll();
+    [120,400,900,1800,3200].forEach(function(ms){ setTimeout(syncAll,ms); });
+    window.addEventListener('load',syncAll);
+    window.addEventListener('resize',function(){ setTimeout(syncAll,100); },{passive:true});
+    window.addEventListener('orientationchange',function(){ setTimeout(syncAll,160); },{passive:true});
   });
 })();
 

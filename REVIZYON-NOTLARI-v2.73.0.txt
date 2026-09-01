@@ -1,0 +1,45 @@
+PİYASA VİZYON CHILD THEME v2.73.0
+=================================
+
+Bu sürüm, 21 Temmuz 20:10 revizyon listesindeki single sayfa, mobil header,
+Halka Arz ve slider hover sorunlarına odaklanır.
+
+Yapısal düzeltmeler
+-------------------
+- Ana temanın genel `header { position: fixed; height: 76px; }` kuralından
+  etkilenen içerik başlıkları semantik site header'ından ayrıldı.
+- Haber single, arşiv/kategori, Halka Arz sayfa ve detay, piyasa sayfası ve
+  coin detay başlıkları normal belge akışına alındı.
+- Mobil site header'ının gerçek yüksekliği belge akışında korunarak ilk
+  içeriğin ve sayfa başlıklarının header arkasında kalması engellendi.
+
+Single sayfa
+------------
+- Başlık, kategori, meta, özet ve öne çıkan görsel birbirinden ayrılmış akış
+  blokları olarak düzenlendi.
+- Desktop içerik/sidebar grid'i ve kart görünümü yenilendi.
+- Masthead slotu 970 px satırı dolduracak, reklam kreatifi kendi ölçüsünde
+  ortalanacak şekilde düzeltildi.
+- Mobil masthead görünürlüğü ve tek kolon içerik yapısı güçlendirildi.
+
+Halka Arz
+---------
+- Takvim, gelecek arzlar ve tümü sekmeleri mobil grid'e dönüştürüldü.
+- Takvim kartları 58 px logo + esnek metin kolonuyla yeniden düzenlendi.
+- Rozet, şirket adı, tarih, değer ve fiyat alanlarının taşması giderildi.
+- Halka Arz detayında logo ve şirket metni mobilde yan yana, okunabilir kaldı.
+- Detay sekmeleri iki kolon mobil grid'e; sonuç tabloları responsive kart
+  düzenine dönüştürüldü.
+- Sayfa kabuğu ve bileşenlerde yatay taşma kaynakları sınırlandı.
+
+Ana sayfa slider
+----------------
+- Hover/focus halinde başlık rengi beyaz ve okunabilir tutuldu.
+- Renk değişimi yerine hafif parlaklık efekti uygulandı.
+
+Dağıtım
+-------
+- Tema sürümü: 2.73.0
+- LiteSpeed otomatik cache purge build anahtarı: 2.73.0
+- CSS dosyaları filemtime ile cache-bust edilir.
+

@@ -16,12 +16,12 @@ $pv_market_kicker = isset($pv_market_kicker) ? $pv_market_kicker : 'Piyasa Vizyo
 <main class="wrap pv-inner-layout pv-page-layout pv-market-page-layout <?php echo esc_attr($pv_market_page_class); ?>">
   <article class="pv-inner-card pv-page-card pv-market-card">
     <?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
-      <header class="pv-market-hero-card">
+      <div class="pv-market-hero-card">
         <div>
           <span class="pv-market-kicker"><?php echo esc_html($pv_market_kicker); ?></span>
           <h1 class="pv-inner-title pv-market-title"><?php the_title(); ?></h1>
         </div>
-      </header>
+      </div>
       <div class="pv-entry-content pv-market-content"><?php the_content(); ?></div>
     <?php endwhile; endif; ?>
   </article>

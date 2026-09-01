@@ -24,14 +24,14 @@ if (is_tax()) {
                     <li class="post bg"><span><?php echo esc_html($archive_title); ?></span></li>
                 </ul>
             </div>
-            <header class="pv-ipo-page-hero">
+            <div class="pv-ipo-page-hero">
                 <div>
                     <span class="pv-eyebrow">Halka Arz</span>
                     <h1><?php echo esc_html($archive_title); ?></h1>
                     <?php if ($archive_desc) : ?><p><?php echo wp_kses_post(wp_strip_all_tags($archive_desc)); ?></p><?php endif; ?>
                 </div>
                 <a class="pv-ipo-hero-button" href="<?php echo esc_url(home_url('/halka-arz-takvimi/')); ?>">Takvimi Gör</a>
-            </header>
+            </div>
 
             <?php pv_v7_ipo_render_ad('pv-ipo-ad-top'); ?>
             <main class="pv-ipo-main-full" role="main">
