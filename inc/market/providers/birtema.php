@@ -2,12 +2,9 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
- * Resolve the existing BirTema market-data license without committing secrets
- * to the repository.
+ * Resolve the BirTema market-data license without committing secrets.
  *
- * Preferred long-term sources are a wp-config constant or environment variable.
- * During migration we can still read the plain legacy BirFinans lisans.php file
- * so the encoded parent runtime is not required just to obtain the entitlement.
+ * Production should provide the license via wp-config.php or environment.
  */
 function pv_market_birtema_license() {
     if ( defined( 'PV_BIRTEMA_LICENSE' ) && is_string( PV_BIRTEMA_LICENSE ) ) {
@@ -22,15 +19,7 @@ function pv_market_birtema_license() {
         return trim( $environment );
     }
 
-    $legacy_file = WP_CONTENT_DIR . '/themes/birfinans/lisans.php';
-    if ( ! is_readable( $legacy_file ) ) {
-        return '';
-    }
-
-    $lisans = null;
-    include $legacy_file;
-
-    return is_string( $lisans ) ? trim( $lisans ) : '';
+    return '';
 }
 
 /**
