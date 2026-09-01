@@ -6,6 +6,7 @@ require_once __DIR__ . '/contracts.php';
 require_once __DIR__ . '/provider.php';
 require_once __DIR__ . '/mynet.php';
 require_once __DIR__ . '/live-borsa.php';
+require_once __DIR__ . '/borsa.php';
 
 function pv_market_cache_minutes() {
     global $bp_options;
