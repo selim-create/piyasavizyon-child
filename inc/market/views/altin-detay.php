@@ -15,15 +15,8 @@ $selling    = isset( $detail['selling'] ) ? (string) $detail['selling'] : '';
 $change_pct = isset( $detail['change_pct'] ) ? (string) $detail['change_pct'] : '';
 $update     = isset( $detail['update'] ) ? (string) $detail['update'] : '';
 $stats      = isset( $detail['stats'] ) && is_array( $detail['stats'] ) ? $detail['stats'] : array();
-$exchange   = isset( $detail['exchange_id'] ) ? (string) $detail['exchange_id'] : '';
+$chart      = isset( $detail['chart'] ) && is_array( $detail['chart'] ) ? array_values( $detail['chart'] ) : array();
 $windows    = pv_market_gold_chart_windows();
-$charts     = array();
-
-if ( $exchange !== '' ) {
-    foreach ( $windows as $window_key => $window ) {
-        $charts[ $window_key ] = pv_market_bigpara_gold_chart( $exchange, $window['period'] );
-    }
-}
 
 $numeric_change = (float) str_replace( array( '.', ',', '%' ), array( '', '.', '' ), $change_pct );
 $direction      = $numeric_change > 0 ? 'increase' : ( $numeric_change < 0 ? 'decrease' : 'neutral' );
@@ -82,10 +75,10 @@ get_header();
 
                                                 <?php $first = true; foreach ( $windows as $window_key => $window ) : ?>
                                                     <div class="borsaTimerTabContent pv-gold-chart-panel" data-pv-gold-window-panel="<?php echo esc_attr( $window_key ); ?>" style="<?php echo $first ? 'display:block;' : 'display:none;'; ?>">
-                                                        <?php if ( ! empty( $charts[ $window_key ] ) ) : ?>
+                                                        <?php if ( $chart ) : ?>
                                                             <div class="currencyChart" id="pv_gold_<?php echo esc_attr( $window_key ); ?>"></div>
                                                         <?php else : ?>
-                                                            <div class="pv-market-empty">Bu dönem için grafik verisi şu anda alınamıyor.</div>
+                                                            <div class="pv-market-empty">Grafik verisi şu anda alınamıyor.</div>
                                                         <?php endif; ?>
                                                     </div>
                                                 <?php $first = false; endforeach; ?>
@@ -126,19 +119,23 @@ get_header();
     <div class="clear"></div>
 </div>
 
-<?php if ( $exchange !== '' ) : ?>
+<?php if ( $chart ) : ?>
 <script>
 (function(){
     if (typeof Highcharts === 'undefined') return;
-    var charts = <?php echo wp_json_encode( $charts ); ?>;
+    var allData = <?php echo wp_json_encode( $chart ); ?>;
     var windows = <?php echo wp_json_encode( $windows ); ?>;
     var name = <?php echo wp_json_encode( $name ); ?>;
 
     Object.keys(windows).forEach(function(key){
-        if (!Array.isArray(charts[key]) || !charts[key].length) return;
+        var config = windows[key];
+        var cutoff = config.seconds ? (Date.now() - (Number(config.seconds) * 1000)) : 0;
+        var data = allData.filter(function(point){
+            return Array.isArray(point) && point.length >= 2 && (!cutoff || Number(point[0]) >= cutoff);
+        });
         Highcharts.chart('pv_gold_' + key, {
             chart: { zoomType: 'x' },
-            title: { text: name + ' ' + windows[key].title },
+            title: { text: name + ' ' + config.title },
             xAxis: { type: 'datetime' },
             yAxis: { title: { text: '' } },
             legend: { enabled: false },
@@ -157,7 +154,7 @@ get_header();
                     threshold: null
                 }
             },
-            series: [{ type:'area', name:name, data:charts[key] }]
+            series: [{ type:'area', name:name, data:data }]
         });
     });
 

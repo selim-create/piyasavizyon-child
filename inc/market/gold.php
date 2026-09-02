@@ -49,13 +49,10 @@ function pv_market_gold_resolve_query( $query ) {
         $price = $selling !== '' ? $selling : $buying;
     }
 
-    $source_slug = $public_slug === 'ons-altin-usd-fiyati' ? 'altin-ons-fiyati' : $public_slug;
-
     return array(
         'query'       => $query,
         'key'         => $match_key,
         'slug'        => $public_slug,
-        'source_slug' => $source_slug,
         'name'        => $name !== '' ? $name : $full_name,
         'full_name'   => $full_name !== '' ? $full_name : $name,
         'price'       => $price,
@@ -66,56 +63,126 @@ function pv_market_gold_resolve_query( $query ) {
     );
 }
 
-function pv_market_fetch_bigpara_gold_html( $source_slug ) {
-    $source_slug = sanitize_title( (string) $source_slug );
-    if ( $source_slug === '' ) {
-        return '';
-    }
+function pv_market_gold_mynet_overrides() {
+    return array(
+        'gram-altin-fiyati'    => 'xgld-spot-altin-tl-gr',
+        'ons-altin-usd-fiyati' => 'xau-usd-ons-altin',
+    );
+}
 
-    $cache_key = 'pv_gold_html_' . md5( $source_slug );
+function pv_market_gold_catalog() {
+    $cache_key = 'pv_gold_mynet_catalog_v1';
     $cached    = get_transient( $cache_key );
-    if ( is_string( $cached ) && $cached !== '' ) {
+    if ( is_array( $cached ) && $cached !== array() ) {
         return $cached;
     }
 
-    $response = wp_safe_remote_get(
-        'https://bigpara.hurriyet.com.tr/altin/' . rawurlencode( $source_slug ) . '/',
-        array(
-            'timeout'     => 20,
-            'redirection' => 4,
-            'headers'     => array(
-                'Accept'     => 'text/html,application/xhtml+xml',
-                'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0 Safari/537.36',
-            ),
-        )
-    );
-
-    if ( is_wp_error( $response ) ) {
-        return '';
+    $html = pv_market_fetch_mynet( '/altin/' );
+    if ( $html === '' ) {
+        return array();
     }
 
-    $status = (int) wp_remote_retrieve_response_code( $response );
-    if ( $status < 200 || $status >= 300 ) {
-        return '';
+    $catalog = array();
+    if ( preg_match_all( '@<a[^>]+href=["\']/altin/([^/"\']+)/["\'][^>]*>(.*?)</a>@si', $html, $matches, PREG_SET_ORDER ) ) {
+        foreach ( $matches as $match ) {
+            $slug = sanitize_title( $match[1] );
+            $name = pv_market_decode_text( $match[2] );
+            if ( $slug === '' || $name === '' ) {
+                continue;
+            }
+            $catalog[ $slug ] = $name;
+        }
     }
 
-    $body = wp_remote_retrieve_body( $response );
-    if ( ! is_string( $body ) || trim( $body ) === '' ) {
-        return '';
+    if ( $catalog !== array() ) {
+        set_transient( $cache_key, $catalog, HOUR_IN_SECONDS );
     }
 
-    set_transient( $cache_key, $body, MINUTE_IN_SECONDS );
-    return $body;
+    return $catalog;
 }
 
-function pv_market_parse_bigpara_gold_html( $html ) {
-    $parsed = array( 'exchange_id' => '', 'stats' => array() );
-    if ( ! is_string( $html ) || trim( $html ) === '' ) {
-        return $parsed;
+function pv_market_gold_tokens( $value ) {
+    $value = pv_market_normalize_label( (string) $value );
+    $parts = preg_split( '/\s+/', $value );
+    $stop  = array( 'altin', 'fiyati', 'fiyat', 'alis', 'satis', 've', 'tl', 'usd' );
+    $out   = array();
+
+    foreach ( (array) $parts as $part ) {
+        $part = trim( (string) $part );
+        if ( strlen( $part ) < 2 || in_array( $part, $stop, true ) ) {
+            continue;
+        }
+        $out[ $part ] = true;
     }
 
-    if ( preg_match( '@/api/v1/chart/exchangegold/([^/"\']+)/@i', $html, $match ) || preg_match( '@/v1/chart/exchangegold/([^/"\']+)/@i', $html, $match ) ) {
-        $parsed['exchange_id'] = sanitize_text_field( $match[1] );
+    return array_keys( $out );
+}
+
+function pv_market_gold_resolve_mynet_slug( $detail ) {
+    $public_slug = isset( $detail['slug'] ) ? sanitize_title( (string) $detail['slug'] ) : '';
+    $overrides   = pv_market_gold_mynet_overrides();
+    if ( isset( $overrides[ $public_slug ] ) ) {
+        return $overrides[ $public_slug ];
+    }
+
+    $catalog = pv_market_gold_catalog();
+    if ( $catalog === array() ) {
+        return '';
+    }
+
+    $needles = array_filter( array(
+        $public_slug,
+        isset( $detail['name'] ) ? $detail['name'] : '',
+        isset( $detail['full_name'] ) ? $detail['full_name'] : '',
+    ) );
+    $needle_tokens = array();
+    foreach ( $needles as $needle ) {
+        $needle_tokens = array_merge( $needle_tokens, pv_market_gold_tokens( $needle ) );
+    }
+    $needle_tokens = array_values( array_unique( $needle_tokens ) );
+
+    $best_slug  = '';
+    $best_score = 0;
+
+    foreach ( $catalog as $slug => $name ) {
+        $score = 0;
+        if ( $public_slug !== '' && strpos( $slug, preg_replace( '/-fiyati$/', '', $public_slug ) ) !== false ) {
+            $score += 5;
+        }
+
+        $candidate_tokens = array_merge( pv_market_gold_tokens( $slug ), pv_market_gold_tokens( $name ) );
+        $candidate_tokens = array_values( array_unique( $candidate_tokens ) );
+        foreach ( $needle_tokens as $token ) {
+            if ( in_array( $token, $candidate_tokens, true ) ) {
+                $score++;
+            }
+        }
+
+        if ( $score > $best_score ) {
+            $best_score = $score;
+            $best_slug  = $slug;
+        }
+    }
+
+    return $best_score >= 2 ? $best_slug : '';
+}
+
+function pv_market_parse_mynet_gold_detail_html( $html, $fallback_name = '' ) {
+    if ( ! is_string( $html ) || trim( $html ) === '' ) {
+        return array();
+    }
+
+    $detail = array(
+        'mynet_name' => (string) $fallback_name,
+        'stats'      => array(),
+        'chart'      => array(),
+    );
+
+    if ( preg_match( '@<h1[^>]*>(.*?)</h1>@si', $html, $match ) ) {
+        $name = pv_market_decode_text( $match[1] );
+        if ( $name !== '' ) {
+            $detail['mynet_name'] = $name;
+        }
     }
 
     if ( class_exists( 'DOMDocument' ) ) {
@@ -135,80 +202,20 @@ function pv_market_parse_bigpara_gold_html( $html ) {
                 $label = pv_market_decode_text( $spans->item( 0 )->textContent );
                 $value = pv_market_decode_text( $spans->item( 1 )->textContent );
                 if ( $label !== '' && $value !== '' ) {
-                    $parsed['stats'][ $label ] = $value;
+                    $detail['stats'][ $label ] = $value;
                 }
             }
         }
     }
 
-    return $parsed;
-}
-
-function pv_market_bigpara_gold_chart( $exchange_id, $period ) {
-    $exchange_id = preg_replace( '/[^A-Za-z0-9_\-]/', '', (string) $exchange_id );
-    $period      = (int) $period;
-    $allowed     = array( 1, 3, 4, 8, 9 );
-
-    if ( $exchange_id === '' || ! in_array( $period, $allowed, true ) ) {
-        return array();
-    }
-
-    $cache_key = 'pv_gold_chart_' . md5( $exchange_id . ':' . $period );
-    $cached    = get_transient( $cache_key );
-    if ( is_array( $cached ) && $cached !== array() ) {
-        return $cached;
-    }
-
-    $response = wp_safe_remote_get(
-        'https://bigpara.hurriyet.com.tr/api/v1/chart/exchangegold/' . rawurlencode( $exchange_id ) . '/' . $period,
-        array(
-            'timeout'     => 20,
-            'redirection' => 3,
-            'headers'     => array(
-                'Accept'     => 'application/json,text/plain,*/*',
-                'User-Agent' => 'PiyasaVizyon/1.0; ' . home_url( '/' ),
-            ),
-        )
-    );
-
-    if ( is_wp_error( $response ) ) {
-        return array();
-    }
-
-    $status = (int) wp_remote_retrieve_response_code( $response );
-    if ( $status < 200 || $status >= 300 ) {
-        return array();
-    }
-
-    $payload = json_decode( wp_remote_retrieve_body( $response ), true );
-    if ( ! is_array( $payload ) ) {
-        return array();
-    }
-
-    $points = array();
-    foreach ( $payload as $row ) {
-        if ( ! is_array( $row ) || empty( $row['tarih'] ) || ! isset( $row['kapanis'] ) ) {
-            continue;
+    if ( preg_match( '@initChartData\(\{(.*?)\}\)@si', $html, $match ) ) {
+        $chart = json_decode( '{' . $match[1] . '}', true );
+        if ( isset( $chart['data'] ) && is_array( $chart['data'] ) ) {
+            $detail['chart'] = $chart['data'];
         }
-        $timestamp = strtotime( (string) $row['tarih'] );
-        if ( ! $timestamp ) {
-            continue;
-        }
-        $value = $row['kapanis'];
-        if ( ! is_numeric( $value ) ) {
-            $value = str_replace( ',', '.', (string) $value );
-        }
-        if ( ! is_numeric( $value ) ) {
-            continue;
-        }
-        $points[] = array( (int) $timestamp * 1000, (float) $value );
     }
 
-    if ( $points !== array() ) {
-        set_transient( $cache_key, $points, 5 * MINUTE_IN_SECONDS );
-    }
-
-    return $points;
+    return $detail;
 }
 
 function pv_market_gold_detail( $query ) {
@@ -217,20 +224,31 @@ function pv_market_gold_detail( $query ) {
         return array();
     }
 
-    $parsed = pv_market_parse_bigpara_gold_html( pv_market_fetch_bigpara_gold_html( $detail['source_slug'] ) );
-    $detail['exchange_id'] = isset( $parsed['exchange_id'] ) ? $parsed['exchange_id'] : '';
-    $detail['stats']       = isset( $parsed['stats'] ) && is_array( $parsed['stats'] ) ? $parsed['stats'] : array();
+    $mynet_slug = pv_market_gold_resolve_mynet_slug( $detail );
+    $detail['mynet_slug'] = $mynet_slug;
+    $detail['stats']      = array();
+    $detail['chart']      = array();
+
+    if ( $mynet_slug === '' ) {
+        return $detail;
+    }
+
+    $html   = pv_market_fetch_mynet( '/altin/' . rawurlencode( $mynet_slug ) . '/' );
+    $parsed = pv_market_parse_mynet_gold_detail_html( $html, $detail['name'] );
+
+    $detail['stats'] = isset( $parsed['stats'] ) && is_array( $parsed['stats'] ) ? $parsed['stats'] : array();
+    $detail['chart'] = isset( $parsed['chart'] ) && is_array( $parsed['chart'] ) ? $parsed['chart'] : array();
 
     return $detail;
 }
 
 function pv_market_gold_chart_windows() {
     return array(
-        'daily'   => array( 'label' => 'GÜNLÜK',   'title' => 'Günlük',   'period' => 1 ),
-        'weekly'  => array( 'label' => 'HAFTA',    'title' => 'Haftalık', 'period' => 3 ),
-        'monthly' => array( 'label' => 'AY',       'title' => 'Aylık',    'period' => 4 ),
-        'yearly'  => array( 'label' => 'BU YIL',   'title' => 'Yıllık',   'period' => 8 ),
-        'all'     => array( 'label' => '3 YILLIK', 'title' => '3 Yıllık', 'period' => 9 ),
+        'daily'   => array( 'label' => 'GÜNLÜK',   'title' => 'Günlük',   'seconds' => DAY_IN_SECONDS ),
+        'weekly'  => array( 'label' => 'HAFTA',    'title' => 'Haftalık', 'seconds' => WEEK_IN_SECONDS ),
+        'monthly' => array( 'label' => 'AY',       'title' => 'Aylık',    'seconds' => DAY_IN_SECONDS * 30 ),
+        'yearly'  => array( 'label' => 'BU YIL',   'title' => 'Yıllık',   'seconds' => YEAR_IN_SECONDS ),
+        'all'     => array( 'label' => '3 YILLIK', 'title' => '3 Yıllık', 'seconds' => YEAR_IN_SECONDS * 3 ),
     );
 }
 
