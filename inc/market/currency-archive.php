@@ -99,7 +99,7 @@ function pv_market_parse_currency_archive_html( $html ) {
             $headers[] = pv_market_decode_text( $cell->textContent );
         }
 
-        $name_index  = pv_market_find_header_index( $headers, array( 'isim', 'doviz' ) );
+        $name_index  = pv_market_find_header_index( $headers, array( 'isim', "i\u{0307}sim", 'doviz' ) );
         $open_index  = pv_market_find_header_index( $headers, array( 'acilis' ) );
         $low_index   = pv_market_find_header_index( $headers, array( 'en dusuk' ) );
         $high_index  = pv_market_find_header_index( $headers, array( 'en yuksek' ) );
