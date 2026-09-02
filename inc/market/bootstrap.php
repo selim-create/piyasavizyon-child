@@ -8,6 +8,7 @@ require_once __DIR__ . '/mynet.php';
 require_once __DIR__ . '/live-borsa.php';
 require_once __DIR__ . '/borsa.php';
 require_once __DIR__ . '/parity.php';
+require_once __DIR__ . '/gold.php';
 
 function pv_market_cache_minutes() {
     global $bp_options;
