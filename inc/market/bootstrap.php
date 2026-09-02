@@ -5,6 +5,7 @@ require_once __DIR__ . '/cache.php';
 require_once __DIR__ . '/contracts.php';
 require_once __DIR__ . '/provider.php';
 require_once __DIR__ . '/mynet.php';
+require_once __DIR__ . '/providers/mynet-borsa-summary.php';
 require_once __DIR__ . '/live-borsa.php';
 require_once __DIR__ . '/borsa.php';
 require_once __DIR__ . '/parity.php';
@@ -44,7 +45,7 @@ function pv_market_cached_resource( $cache_file, $resource ) {
         $cache = new PV_Market_Cache( pv_market_cache_minutes() );
     }
 
-    $migrated = in_array( $resource, array( 'currency', 'altin', 'parite', 'coin' ), true );
+    $migrated = in_array( $resource, array( 'currency', 'altin', 'parite', 'coin', 'borsa' ), true );
     $data = ( $migrated && method_exists( $cache, 'get_current' ) )
         ? $cache->get_current( $cache_file )
         : $cache->get( $cache_file );
@@ -96,22 +97,13 @@ function pv_market_prime_legacy_globals() {
         $coin_data = $data;
     }
 
-    if ( ! empty( $borsa_data ) && is_array( $borsa_data ) ) {
-        pv_market_seed_existing_payload( 'borsa.json', $borsa_data );
-
-        $bist100_data = isset( $borsa_data['bist_100'] ) ? $borsa_data['bist_100'] : $bist100_data;
-        $borsa_artanlar_data = isset( $borsa_data['borsa_artanlar'] ) ? $borsa_data['borsa_artanlar'] : $borsa_artanlar_data;
-        $borsa_azalanlar_data = isset( $borsa_data['borsa_azalanlar'] ) ? $borsa_data['borsa_azalanlar'] : $borsa_azalanlar_data;
-        $borsa_islem_gorenler_data = isset( $borsa_data['borsa_islem_gorenler'] ) ? $borsa_data['borsa_islem_gorenler'] : $borsa_islem_gorenler_data;
-    } elseif ( empty( $bist100_data ) ) {
-        $data = pv_market_cached_resource( 'borsa.json', 'borsa' );
-        if ( is_array( $data ) && $data !== array() ) {
-            $borsa_data = $data;
-            $bist100_data = isset( $data['bist_100'] ) ? $data['bist_100'] : array();
-            $borsa_artanlar_data = isset( $data['borsa_artanlar'] ) ? $data['borsa_artanlar'] : array();
-            $borsa_azalanlar_data = isset( $data['borsa_azalanlar'] ) ? $data['borsa_azalanlar'] : array();
-            $borsa_islem_gorenler_data = isset( $data['borsa_islem_gorenler'] ) ? $data['borsa_islem_gorenler'] : array();
-        }
+    $data = pv_market_cached_resource( 'borsa.json', 'borsa' );
+    if ( is_array( $data ) && $data !== array() ) {
+        $borsa_data = $data;
+        $bist100_data = isset( $data['bist_100'] ) ? $data['bist_100'] : array();
+        $borsa_artanlar_data = isset( $data['borsa_artanlar'] ) ? $data['borsa_artanlar'] : array();
+        $borsa_azalanlar_data = isset( $data['borsa_azalanlar'] ) ? $data['borsa_azalanlar'] : array();
+        $borsa_islem_gorenler_data = isset( $data['borsa_islem_gorenler'] ) ? $data['borsa_islem_gorenler'] : array();
     }
 
     $core_market_ready =
