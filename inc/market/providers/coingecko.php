@@ -60,11 +60,6 @@ function pv_market_coingecko_fetch() {
             continue;
         }
 
-        // Historical Piyasa Vizyon semantics:
-        // - current_price: TRY spot price
-        // - price_24h: 24-hour percentage movement
-        // - change_rate: percentage distance from ATH
-        // - suply: circulating supply (legacy field name intentionally kept)
         $change_24h = isset( $row['price_change_percentage_24h'] ) && is_numeric( $row['price_change_percentage_24h'] )
             ? (float) $row['price_change_percentage_24h']
             : 0.0;
@@ -81,7 +76,6 @@ function pv_market_coingecko_fetch() {
         if ( ! empty( $row['last_updated'] ) ) {
             $timestamp = strtotime( (string) $row['last_updated'] );
             if ( $timestamp !== false ) {
-                // The legacy payload exposed the provider timestamp in UTC as H:i.
                 $last_updated = gmdate( 'H:i', $timestamp );
             }
         }
@@ -103,9 +97,84 @@ function pv_market_coingecko_fetch() {
     return $payload;
 }
 
-/**
- * Backward-compatible alias retained for the Phase 2B diagnostic commands.
- */
+function pv_market_coingecko_id( $slug, $symbol = '' ) {
+    $slug = sanitize_title( (string) $slug );
+    $symbol = strtolower( sanitize_key( (string) $symbol ) );
+    $map = array(
+        'btc' => 'bitcoin', 'bitcoin' => 'bitcoin',
+        'eth' => 'ethereum', 'ethereum' => 'ethereum',
+        'xrp' => 'ripple', 'ripple' => 'ripple',
+        'bch' => 'bitcoin-cash', 'bitcoin-cash' => 'bitcoin-cash',
+        'ltc' => 'litecoin', 'litecoin' => 'litecoin',
+        'bnb' => 'binancecoin', 'binancecoin' => 'binancecoin',
+        'sol' => 'solana', 'solana' => 'solana',
+        'doge' => 'dogecoin', 'dogecoin' => 'dogecoin',
+        'avax' => 'avalanche-2', 'avalanche' => 'avalanche-2', 'avalanche-2' => 'avalanche-2',
+        'ada' => 'cardano', 'cardano' => 'cardano',
+        'trx' => 'tron', 'tron' => 'tron',
+        'xlm' => 'stellar', 'stellar' => 'stellar',
+        'xmr' => 'monero', 'monero' => 'monero',
+        'fil' => 'filecoin', 'filecoin' => 'filecoin',
+        'usdt' => 'tether', 'tether' => 'tether',
+    );
+    if ( isset( $map[ $symbol ] ) ) {
+        return $map[ $symbol ];
+    }
+    return isset( $map[ $slug ] ) ? $map[ $slug ] : $slug;
+}
+
+function pv_market_coingecko_chart( $slug, $symbol = '' ) {
+    $id = pv_market_coingecko_id( $slug, $symbol );
+    if ( $id === '' ) {
+        return array();
+    }
+
+    $cache_key = 'pv_coingecko_chart_' . md5( $id );
+    $cached = get_transient( $cache_key );
+    if ( is_array( $cached ) && $cached !== array() ) {
+        return $cached;
+    }
+
+    $url = add_query_arg(
+        array( 'vs_currency' => 'usd', 'days' => 1 ),
+        'https://api.coingecko.com/api/v3/coins/' . rawurlencode( $id ) . '/market_chart'
+    );
+    $response = wp_safe_remote_get(
+        $url,
+        array(
+            'timeout'     => 20,
+            'redirection' => 3,
+            'headers'     => array(
+                'Accept'     => 'application/json',
+                'User-Agent' => 'PiyasaVizyon/1.0; ' . home_url('/'),
+            ),
+        )
+    );
+    if ( is_wp_error( $response ) ) {
+        return array();
+    }
+    $status = (int) wp_remote_retrieve_response_code( $response );
+    if ( $status < 200 || $status >= 300 ) {
+        return array();
+    }
+
+    $payload = json_decode( wp_remote_retrieve_body( $response ), true );
+    if ( empty( $payload['prices'] ) || ! is_array( $payload['prices'] ) ) {
+        return array();
+    }
+
+    $points = array();
+    foreach ( $payload['prices'] as $row ) {
+        if ( is_array( $row ) && isset( $row[0], $row[1] ) && is_numeric( $row[0] ) && is_numeric( $row[1] ) ) {
+            $points[] = array( (int) $row[0], (float) $row[1] );
+        }
+    }
+    if ( $points ) {
+        set_transient( $cache_key, $points, 5 * MINUTE_IN_SECONDS );
+    }
+    return $points;
+}
+
 function pv_market_coingecko_shadow_fetch() {
     return pv_market_coingecko_fetch();
 }
