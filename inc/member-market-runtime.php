@@ -11,3 +11,15 @@ function pv_member_market_enqueue() {
     ) );
 }
 add_action( 'wp_enqueue_scripts', 'pv_member_market_enqueue', 1300 );
+
+function pv_member_market_filter_output( $html ) {
+    if ( ! is_string( $html ) || strpos( $html, 'user_api.php' ) === false ) { return $html; }
+    $pattern = '~<script>\s*\(function\(\$\)\{\s*if \(!\$\) return;\s*var endpoint = .*?user_api\.php.*?window\.girisYap = function\(\)\{ alert\(\'Bu özelliği kullanmak için lütfen giriş yapınız\.\'\); \};\s*\}\)\(window\.jQuery\);\s*</script>~s';
+    $replacement = "<script>window.girisYap=function(){alert('Bu özelliği kullanmak için lütfen giriş yapınız.');};</script>";
+    return preg_replace( $pattern, $replacement, $html, 1 );
+}
+
+function pv_member_market_begin_output_filter() {
+    if ( is_page_template( 'doviz-detay.php' ) ) { ob_start( 'pv_member_market_filter_output' ); }
+}
+add_action( 'template_redirect', 'pv_member_market_begin_output_filter', 1 );
