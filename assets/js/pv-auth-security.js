@@ -21,6 +21,45 @@ jQuery(document).ready(function ($) {
         }
     }
 
+    function showFormMessage($form, message) {
+        $form.find('#check').first().show().text(message);
+    }
+
+    function looksLikeEmail(value) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    }
+
+    function validateAuthForm($form) {
+        var isRegister = $form.attr('id') === 'register';
+        var username = $.trim(isRegister ? $('#signonname').val() : $form.find('#username').val());
+        var password = String(isRegister ? ($('#signonpassword').val() || '') : ($form.find('#password').val() || ''));
+
+        if (!username || !password) {
+            showFormMessage($form, 'Kullanıcı adı ve şifre alanları zorunludur.');
+            return false;
+        }
+
+        if (isRegister) {
+            var email = $.trim($('#email').val());
+            if (!email) {
+                showFormMessage($form, 'E-posta alanı zorunludur.');
+                return false;
+            }
+            if (!looksLikeEmail(email)) {
+                showFormMessage($form, 'Geçerli bir e-posta adresi girin.');
+                return false;
+            }
+
+            var $passwordConfirm = $form.find('#password2, [name="password2"]');
+            if ($passwordConfirm.length && String($passwordConfirm.val() || '') !== password) {
+                showFormMessage($form, 'Şifre alanları birbiriyle eşleşmiyor.');
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     var $registerForm = $('form#register');
     if ($registerForm.length) {
         ensureHoneypot($registerForm);
@@ -30,21 +69,21 @@ jQuery(document).ready(function ($) {
     $('form#login, form#register').on('submit', function (e) {
         e.preventDefault();
         var $form = $(this);
-        if ($.fn.valid && !$form.valid()) return false;
-        $('#check', this).show().text(ajax_auth_object.loadingmessage);
+        if (!validateAuthForm($form)) return false;
+        showFormMessage($form, ajax_auth_object.loadingmessage);
 
         var isRegister = $form.attr('id') === 'register';
         var action = isRegister ? 'ajaxregister' : 'ajaxlogin';
-        var username = isRegister ? $('#signonname').val() : $('form#login #username').val();
-        var password = isRegister ? $('#signonpassword').val() : $('form#login #password').val();
+        var username = isRegister ? $('#signonname').val() : $form.find('#username').val();
+        var password = isRegister ? $('#signonpassword').val() : $form.find('#password').val();
         var email = isRegister ? $('#email').val() : '';
-        var security = isRegister ? $('#signonsecurity').val() : $('form#login #security').val();
+        var security = isRegister ? $('#signonsecurity').val() : $form.find('#security').val();
         var turnstileResponse = '';
 
         if (isRegister && window.pvAuthSecurity && pvAuthSecurity.turnstileEnabled) {
             turnstileResponse = $form.find('[name="cf-turnstile-response"]').val() || '';
             if (!turnstileResponse) {
-                $('#check', this).show().text(pvAuthSecurity.turnstileMessage);
+                showFormMessage($form, pvAuthSecurity.turnstileMessage);
                 ensureTurnstile($form);
                 return false;
             }
@@ -64,7 +103,7 @@ jQuery(document).ready(function ($) {
                 'cf-turnstile-response': turnstileResponse
             },
             success: function (data) {
-                $('#check', $form).text(data.message || 'İşlem tamamlanamadı.');
+                showFormMessage($form, data.message || 'İşlem tamamlanamadı.');
                 if (data.loggedin === true) {
                     window.setTimeout(function () { document.location.href = ajax_auth_object.redirecturl; }, 1000);
                     return;
@@ -72,16 +111,10 @@ jQuery(document).ready(function ($) {
                 if (isRegister && turnstileWidgetId !== null && window.turnstile) window.turnstile.reset(turnstileWidgetId);
             },
             error: function () {
-                $('#check', $form).text('İşlem tamamlanamadı. Lütfen tekrar deneyin.');
+                showFormMessage($form, 'İşlem tamamlanamadı. Lütfen tekrar deneyin.');
                 if (isRegister && turnstileWidgetId !== null && window.turnstile) window.turnstile.reset(turnstileWidgetId);
             }
         });
         return false;
     });
-
-    if ($('#register').length && $.fn.validate) {
-        $('#register').validate({rules: {password2: {equalTo: '#signonpassword'}}});
-    } else if ($('#login').length && $.fn.validate) {
-        $('#login').validate();
-    }
 });
