@@ -73,7 +73,7 @@ get_header();
                                                     ?>
                                                     <tr class="alt">
                                                         <td style="width: 70% !important;display: inline-block;"><a
-                                                                    href="<?php bloginfo("home") ?>/<?= $bp_options['page_altin'] ?>/?a=<?= $altin_data['altin_key'][$key] ?>"
+                                                                    href="<?php echo esc_url( home_url( '/altin/?a=' . rawurlencode( $altin_data['altin_key'][$key] ) ) ); ?>"
                                                                     style="width: 100%;"><b><?= ($altin_data['altin_name'][$key]) ?></b></a>
                                                         </td>
                                                         <td style="width: 20%;display: inline-block;padding-left:0px;">
@@ -105,7 +105,7 @@ get_header();
                                                     ?>
                                                     <tr>
                                                         <td>
-                                                            <a href="<?php bloginfo("home") ?>/<?= $bp_options['page_altin'] ?>/?a=<?= $altin_data['altin_key'][$key] ?>"><b><?= ($altin_data['altin_name'][$key]) ?></b></a>
+                                                            <a href="<?php echo esc_url( home_url( '/altin/?a=' . rawurlencode( $altin_data['altin_key'][$key] ) ) ); ?>"><b><?= ($altin_data['altin_name'][$key]) ?></b></a>
                                                         </td>
                                                         <td style="color: <?= $color; ?>;"><i
                                                                     class="<?= $crease_status ?>"></i> <?= $altin_data['altin_price_buying'][$key] ?>
