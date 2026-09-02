@@ -37,7 +37,7 @@ get_header();
                     <div class="breadcrumb">
                         <ul class="block">
                             <li><a href="<?php echo esc_url( home_url( '/' ) ); ?>">Anasayfa<i>/</i></a></li>
-                            <li><a href="<?php echo esc_url( home_url( '/altin/' ) ); ?>">Altın Fiyatları<i>/</i></a></li>
+                            <li><a href="<?php echo esc_url( home_url( '/altin-fiyatlari/' ) ); ?>">Altın Fiyatları<i>/</i></a></li>
                             <li class="post bg"><span><?php echo esc_html( $name ); ?></span></li>
                         </ul>
                     </div>
