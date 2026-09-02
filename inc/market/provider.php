@@ -7,12 +7,7 @@ require_once __DIR__ . '/providers/birtema.php';
 /**
  * Fetch a raw market payload through the Piyasa Vizyon provider seam.
  *
- * Child-owned providers are preferred resource-by-resource. While BirFinans is
- * still active its get_data_service() function remains the final fallback for
- * resources that have not yet been migrated, and as a temporary failover for
- * crypto if CoinGecko cannot produce a valid payload. Migrated currency, gold
- * and parity do not fall back to the parent transport because the child BirTema
- * transport already targets the same entitled upstream service.
+ * All supported runtime resources now resolve through child-owned providers.
  */
 function pv_market_provider_fetch( $resource ) {
     $resource = ltrim( (string) $resource, '/' );
@@ -32,6 +27,7 @@ function pv_market_provider_fetch( $resource ) {
                 return $coin_data;
             }
         }
+        return false;
     }
 
     if ( in_array( $resource, array( 'currency', 'altin', 'parite' ), true ) ) {
@@ -43,17 +39,16 @@ function pv_market_provider_fetch( $resource ) {
                 }
             }
         }
-
         return false;
     }
 
-    if ( function_exists( 'get_data_service' ) ) {
-        return get_data_service( $resource );
+    if ( $resource === 'borsa' && function_exists( 'pv_market_mynet_borsa_summary_fetch' ) ) {
+        return pv_market_mynet_borsa_summary_fetch();
     }
 
     return false;
 }
 
 function pv_market_provider_is_legacy_fallback() {
-    return function_exists( 'get_data_service' );
+    return false;
 }
