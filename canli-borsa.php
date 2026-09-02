@@ -11,7 +11,7 @@ $endex = function_exists('pv_live_borsa_allowed_endex') ? pv_live_borsa_allowed_
 $all_rows = function_exists('pv_live_borsa_rows') ? pv_live_borsa_rows($endex) : array();
 $total_count = count($all_rows);
 $up_count = count(array_filter($all_rows, static fn($r) => $r['direction'] === 'increase'));
-$down_count = max(0, $total_count - $up_count);
+$down_count = count(array_filter($all_rows, static fn($r) => $r['direction'] === 'decrease'));
 $updated = $all_rows[0]['time'] ?? current_time('H:i');
 $tabs = array(
   'bist-TUM' => 'BIST Tümü',
@@ -55,12 +55,14 @@ $tabs = array(
             <thead><tr><th>Hisse</th><th>Fiyat</th><th>Değişim</th><th>Zaman</th></tr></thead>
             <tbody>
               <?php foreach ($all_rows as $row):
-                $url = $row['slug'] ? home_url('/hisse/?h=' . rawurlencode($row['slug'])) : '#';
+                $detail_slug = ! empty( $row['detail_slug'] ) ? $row['detail_slug'] : $row['slug'];
+                $url = $detail_slug ? home_url('/hisse/?h=' . rawurlencode($detail_slug)) : '#';
+                $arrow = $row['direction'] === 'increase' ? '▲ ' : ($row['direction'] === 'decrease' ? '▼ ' : '• ');
               ?>
                 <tr class="<?php echo esc_attr($row['key']); ?>_bg" data-direction="<?php echo esc_attr($row['direction']); ?>">
                   <td><a class="pv-live-symbol hisse_name <?php echo esc_attr($row['key']); ?>_name" data-name="<?php echo esc_attr($row['key']); ?>" href="<?php echo esc_url($url); ?>"><span><?php echo esc_html(substr($row['symbol'],0,1)); ?></span><b><?php echo esc_html($row['symbol']); ?></b></a></td>
                   <td><strong class="<?php echo esc_attr($row['key']); ?>_fiyat"><?php echo esc_html($row['price']); ?></strong></td>
-                  <td><em class="pv-live-change <?php echo esc_attr($row['direction']); ?> <?php echo esc_attr($row['key']); ?>_yuzde"><?php echo $row['direction'] === 'increase' ? '▲ ' : '▼ '; ?><?php echo esc_html($row['percent']); ?></em></td>
+                  <td><em class="pv-live-change <?php echo esc_attr($row['direction']); ?> <?php echo esc_attr($row['key']); ?>_yuzde"><?php echo esc_html($arrow . $row['percent']); ?></em></td>
                   <td><time class="<?php echo esc_attr($row['key']); ?>_zaman"><?php echo esc_html($row['time']); ?></time></td>
                 </tr>
               <?php endforeach; ?>
@@ -77,40 +79,58 @@ $tabs = array(
 (function($){
   if (!$) return;
   var endpoint = <?php echo wp_json_encode(admin_url('admin-ajax.php?action=pv_live_borsa&endex=' . rawurlencode($endex))); ?>;
+  var busy = false;
 
-  function canli() {
-    $.getJSON(endpoint, function(payload) {
-      if (!payload || !payload.success || !payload.data) return;
-      var obj = payload.data;
-
-      $('.hisse_name').each(function(){
-        var name = $(this).data('name');
-        if (!name || !obj[name]) return;
-
-        var $price = $('.' + name + '_fiyat');
-        var oldPrice = parseFloat(($price.first().text() || '').replace(/\./g, '').replace(',', '.'));
-        var newPrice = parseFloat(String(obj[name].fiyat || '').replace(/\./g, '').replace(',', '.'));
-
-        if (!isFinite(oldPrice) || !isFinite(newPrice)) return;
-
-        if (oldPrice !== newPrice) {
-          $price.text(obj[name].fiyat);
-          $('.' + name + '_yuzde')
-            .text((oldPrice < newPrice ? '▲ ' : '▼ ') + obj[name].yuzde)
-            .removeClass('increase decrease')
-            .addClass(oldPrice < newPrice ? 'increase' : 'decrease');
-
-          var $row = $('.' + name + '_bg');
-          $row.addClass(oldPrice < newPrice ? 'pv-live-flash-up' : 'pv-live-flash-down');
-          setTimeout(function(){ $row.removeClass('pv-live-flash-up pv-live-flash-down'); }, 1600);
-        }
-
-        $('.' + name + '_zaman').text(obj[name].zaman);
-      });
-    });
+  function arrowFor(direction) {
+    if (direction === 'increase') return '▲ ';
+    if (direction === 'decrease') return '▼ ';
+    return '• ';
   }
 
-  setInterval(canli, 5000);
+  function canli() {
+    if (busy || document.hidden) return;
+    busy = true;
+
+    $.getJSON(endpoint)
+      .done(function(payload) {
+        if (!payload || !payload.success || !payload.data) return;
+        var obj = payload.data;
+
+        $('.hisse_name').each(function(){
+          var name = $(this).data('name');
+          if (!name || !obj[name]) return;
+
+          var $price = $('.' + name + '_fiyat');
+          var $change = $('.' + name + '_yuzde');
+          var oldPrice = parseFloat(($price.first().text() || '').replace(/\./g, '').replace(',', '.'));
+          var newPrice = parseFloat(String(obj[name].fiyat || '').replace(/\./g, '').replace(',', '.'));
+          var direction = obj[name].direction || 'neutral';
+
+          if (isFinite(newPrice)) {
+            $price.text(obj[name].fiyat);
+          }
+
+          $change
+            .text(arrowFor(direction) + obj[name].yuzde)
+            .removeClass('increase decrease neutral')
+            .addClass(direction);
+
+          if (isFinite(oldPrice) && isFinite(newPrice) && oldPrice !== newPrice) {
+            var $row = $('.' + name + '_bg');
+            $row.addClass(oldPrice < newPrice ? 'pv-live-flash-up' : 'pv-live-flash-down');
+            setTimeout(function(){ $row.removeClass('pv-live-flash-up pv-live-flash-down'); }, 1600);
+          }
+
+          $('.' + name + '_zaman').text(obj[name].zaman);
+        });
+      })
+      .always(function(){ busy = false; });
+  }
+
+  setInterval(canli, 30000);
+  document.addEventListener('visibilitychange', function(){
+    if (!document.hidden) canli();
+  });
 })(window.jQuery);
 </script>
 <?php get_footer(); ?>
