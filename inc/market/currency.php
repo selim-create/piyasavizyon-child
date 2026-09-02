@@ -156,6 +156,33 @@ function pv_market_currency_bank_rows( $detail ) {
     return array_slice( $rows, 0, 30 );
 }
 
+function pv_market_currency_normalize_bank_name( $name ) {
+    $name = pv_market_decode_text( $name );
+    $name = mb_strtolower( $name, 'UTF-8' );
+    $name = str_replace( "\xCC\x87", '', $name ); // Strip combining dot left by Turkish capital İ.
+    $name = remove_accents( $name );
+    $name = preg_replace( '/\s+/u', ' ', $name );
+    return trim( (string) $name );
+}
+
+function pv_market_currency_find_bank( $banks, $requested_name ) {
+    $needle = pv_market_currency_normalize_bank_name( $requested_name );
+    if ( $needle === '' || ! is_array( $banks ) ) {
+        return array();
+    }
+
+    foreach ( $banks as $bank ) {
+        if ( empty( $bank['name'] ) ) {
+            continue;
+        }
+        if ( pv_market_currency_normalize_bank_name( $bank['name'] ) === $needle ) {
+            return $bank;
+        }
+    }
+
+    return array();
+}
+
 function pv_market_currency_detail( $query ) {
     $detail = pv_market_currency_resolve_query( $query );
     if ( empty( $detail['code'] ) ) {
@@ -206,10 +233,8 @@ function pv_market_route_currency_detail_template( $template ) {
         return $template;
     }
 
-    // Bank-specific pages intentionally remain on the legacy view until the
-    // bank-source/member behavior is migrated separately.
     if ( ! empty( $_GET['banka'] ) ) {
-        return $template;
+        return __DIR__ . '/views/doviz-banka-detay.php';
     }
 
     return __DIR__ . '/views/doviz-detay.php';
