@@ -50,6 +50,13 @@ function pv_market_cached_resource( $cache_file, $resource ) {
         ? $cache->get_current( $cache_file )
         : $cache->get( $cache_file );
 
+    if ( $resource === 'borsa' && is_array( $data ) ) {
+        $source = isset( $data['bist_100']['_pv_source'] ) ? (string) $data['bist_100']['_pv_source'] : '';
+        if ( $source !== 'mynet' ) {
+            $data = false;
+        }
+    }
+
     if ( $data !== false && pv_market_payload_is_valid( $resource, $data ) ) {
         return $data;
     }
