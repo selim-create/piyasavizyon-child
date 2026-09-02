@@ -109,7 +109,7 @@ function pv_market_parse_currency_archive_html( $html ) {
             continue;
         }
 
-        foreach ( $xpath->query( './/tr[position() > 1]', $table ) as $tr ) {
+        foreach ( $xpath->query( './/tr[td]', $table ) as $tr ) {
             $cells = array();
             foreach ( $xpath->query( './td', $tr ) as $cell ) {
                 $cells[] = pv_market_decode_text( $cell->textContent );
