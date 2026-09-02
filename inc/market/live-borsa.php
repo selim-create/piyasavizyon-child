@@ -42,6 +42,40 @@ function pv_live_borsa_fetch_html( $endex ) {
     return is_string( $body ) ? $body : '';
 }
 
+/**
+ * Uzmanpara uses company-name-symbol slugs while the child-owned Mynet detail
+ * parser expects symbol-company-name. Convert deterministically using the
+ * ticker already present in the live table row.
+ */
+function pv_live_borsa_mynet_slug( $source_slug, $symbol ) {
+    $source_slug = sanitize_title( (string) $source_slug );
+    $symbol_slug = sanitize_title( strtolower( (string) $symbol ) );
+
+    if ( $source_slug === '' || $symbol_slug === '' ) {
+        return $source_slug;
+    }
+
+    if ( $source_slug === $symbol_slug || strpos( $source_slug, $symbol_slug . '-' ) === 0 ) {
+        return $source_slug;
+    }
+
+    $suffix = '-' . $symbol_slug;
+    if ( substr( $source_slug, -strlen( $suffix ) ) === $suffix ) {
+        $company_slug = substr( $source_slug, 0, -strlen( $suffix ) );
+        if ( $company_slug !== '' ) {
+            return $symbol_slug . '-' . $company_slug;
+        }
+    }
+
+    return $source_slug;
+}
+
+function pv_live_borsa_percent_number( $percent ) {
+    $normalized = str_replace( array( '%', ' ', '.' ), '', (string) $percent );
+    $normalized = str_replace( ',', '.', $normalized );
+    return is_numeric( $normalized ) ? (float) $normalized : 0.0;
+}
+
 function pv_live_borsa_rows_from_html( $html ) {
     $rows = array();
     if ( ! is_string( $html ) || trim( $html ) === '' || ! class_exists( 'DOMDocument' ) ) {
@@ -72,7 +106,6 @@ function pv_live_borsa_rows_from_html( $html ) {
 
         $symbol_node = $xpath->query( './/b[starts-with(@id,"h_b_ad_id_")]', $tr )->item( 0 );
         $price_node  = $xpath->query( './/td[starts-with(@id,"h_td_fiyat_id_")]', $tr )->item( 0 );
-        $dir_node    = $xpath->query( './/td[starts-with(@id,"h_td_yon_id_")]', $tr )->item( 0 );
         $pct_node    = $xpath->query( './/td[starts-with(@id,"h_td_yuzde_id_")]', $tr )->item( 0 );
         $time_node   = $xpath->query( './/td[starts-with(@id,"h_td_zaman_id_")]', $tr )->item( 0 );
 
@@ -85,22 +118,24 @@ function pv_live_borsa_rows_from_html( $html ) {
         $slug = trim( str_replace( '/borsa/hisse-senetleri/', '', $href ), '/' );
         $key  = $pct_node instanceof DOMElement ? preg_replace( '/^h_td_yuzde_id_/', '', (string) $pct_node->getAttribute( 'id' ) ) : sanitize_title( $symbol );
 
-        $direction = 'decrease';
-        if ( $dir_node instanceof DOMElement ) {
-            $class = ' ' . trim( (string) $dir_node->getAttribute( 'class' ) ) . ' ';
-            if ( strpos( $class, ' currency-up ' ) !== false ) {
-                $direction = 'increase';
-            }
+        $percent        = $pct_node ? trim( wp_strip_all_tags( $pct_node->textContent ) ) : '-';
+        $numeric_change = pv_live_borsa_percent_number( $percent );
+        $direction      = 'neutral';
+        if ( $numeric_change > 0 ) {
+            $direction = 'increase';
+        } elseif ( $numeric_change < 0 ) {
+            $direction = 'decrease';
         }
 
         $rows[] = array(
-            'symbol'    => $symbol,
-            'slug'      => $slug,
-            'key'       => $key,
-            'price'     => $price_node ? trim( wp_strip_all_tags( $price_node->textContent ) ) : '-',
-            'percent'   => $pct_node ? trim( wp_strip_all_tags( $pct_node->textContent ) ) : '-',
-            'time'      => $time_node ? trim( wp_strip_all_tags( $time_node->textContent ) ) : '-',
-            'direction' => $direction,
+            'symbol'      => $symbol,
+            'slug'        => $slug,
+            'detail_slug' => pv_live_borsa_mynet_slug( $slug, $symbol ),
+            'key'         => $key,
+            'price'       => $price_node ? trim( wp_strip_all_tags( $price_node->textContent ) ) : '-',
+            'percent'     => $percent,
+            'time'        => $time_node ? trim( wp_strip_all_tags( $time_node->textContent ) ) : '-',
+            'direction'   => $direction,
         );
     }
 
@@ -108,9 +143,11 @@ function pv_live_borsa_rows_from_html( $html ) {
 }
 
 function pv_live_borsa_rows( $endex ) {
-    $endex = pv_live_borsa_allowed_endex( (string) $endex );
-    $cache_key = 'pv_live_borsa_' . md5( $endex );
-    $cached = get_transient( $cache_key );
+    $endex    = pv_live_borsa_allowed_endex( (string) $endex );
+    $cache_id = md5( $endex );
+    $fresh_key = 'pv_live_borsa_' . $cache_id;
+    $stale_key = 'pv_live_borsa_stale_' . $cache_id;
+    $cached    = get_transient( $fresh_key );
 
     if ( is_array( $cached ) && $cached !== array() ) {
         return $cached;
@@ -118,10 +155,13 @@ function pv_live_borsa_rows( $endex ) {
 
     $rows = pv_live_borsa_rows_from_html( pv_live_borsa_fetch_html( $endex ) );
     if ( $rows !== array() ) {
-        set_transient( $cache_key, $rows, 5 );
+        set_transient( $fresh_key, $rows, 30 );
+        set_transient( $stale_key, $rows, 15 * MINUTE_IN_SECONDS );
+        return $rows;
     }
 
-    return $rows;
+    $stale = get_transient( $stale_key );
+    return is_array( $stale ) ? $stale : array();
 }
 
 function pv_live_borsa_ajax() {
@@ -139,9 +179,10 @@ function pv_live_borsa_ajax() {
             continue;
         }
         $payload[ $row['key'] ] = array(
-            'fiyat' => $row['price'],
-            'yuzde' => $row['percent'],
-            'zaman' => $row['time'],
+            'fiyat'     => $row['price'],
+            'yuzde'     => $row['percent'],
+            'zaman'     => $row['time'],
+            'direction' => $row['direction'],
         );
     }
 
@@ -149,3 +190,15 @@ function pv_live_borsa_ajax() {
 }
 add_action( 'wp_ajax_pv_live_borsa', 'pv_live_borsa_ajax' );
 add_action( 'wp_ajax_nopriv_pv_live_borsa', 'pv_live_borsa_ajax' );
+
+/**
+ * The pre-PR26 footer repair script appends a second BIST 100 value. The
+ * current borsa-page.php assignment is already rendered by the child-owned
+ * view, so that legacy DOM patch must not run there anymore.
+ */
+function pv_live_borsa_disable_legacy_bist_footer_patch() {
+    if ( is_page_template( 'borsa-page.php' ) && function_exists( 'pv_market_bist100_footer_patch' ) ) {
+        remove_action( 'wp_footer', 'pv_market_bist100_footer_patch', 50 );
+    }
+}
+add_action( 'wp', 'pv_live_borsa_disable_legacy_bist_footer_patch', 20 );
