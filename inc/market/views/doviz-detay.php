@@ -18,14 +18,21 @@ $selling    = isset( $detail['selling'] ) ? (string) $detail['selling'] : '';
 $change_pct = isset( $detail['change_pct'] ) ? (string) $detail['change_pct'] : '';
 $update     = isset( $detail['update'] ) ? (string) $detail['update'] : '';
 $chart      = isset( $detail['chart'] ) && is_array( $detail['chart'] ) ? array_values( $detail['chart'] ) : array();
-$banks      = isset( $detail['banks'] ) && is_array( $detail['banks'] ) ? $detail['banks'] : array();
+$banks      = isset( $detail['banks'] ) && is_array( $detail['banks'] ) ? array_values( $detail['banks'] ) : array();
 $windows    = pv_market_currency_chart_windows();
+
+$bank_chunks = array( array(), array() );
+if ( $banks ) {
+    $bank_chunks = array_chunk( $banks, (int) ceil( count( $banks ) / 2 ) );
+    if ( ! isset( $bank_chunks[1] ) ) {
+        $bank_chunks[1] = array();
+    }
+}
 
 $numeric_change = (float) str_replace( array( '.', ',', '%' ), array( '', '.', '' ), $change_pct );
 $direction      = $numeric_change > 0 ? 'increase' : ( $numeric_change < 0 ? 'decrease' : 'neutral' );
 $color          = $numeric_change > 0 ? '#32ba5b' : ( $numeric_change < 0 ? '#ef291f' : '#667085' );
 
-$liste_data   = array();
 $status_liste = false;
 $alarm_liste  = false;
 if ( is_user_logged_in() ) {
@@ -71,6 +78,27 @@ get_header();
                                 <?php endif; ?>
                             </div>
                         </h1>
+
+                        <div class="changeCurrencySource">
+                            <span>Serbest Piyasa <i class="dropdown-arrow"></i></span>
+                            <?php if ( $banks ) : ?>
+                                <div class="mCustomScrollbar changeCurrency">
+                                    <?php foreach ( $banks as $bank ) : ?>
+                                        <?php
+                                        $bank_url = add_query_arg(
+                                            array(
+                                                'c'     => sanitize_title( (string) $key ),
+                                                'banka' => (string) $bank['name'],
+                                            ),
+                                            home_url( '/doviz/' )
+                                        );
+                                        ?>
+                                        <a href="<?php echo esc_url( $bank_url ); ?>"><?php echo esc_html( $bank['name'] ); ?></a>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
                         <div class="clearfix"></div>
                     </section>
 
@@ -81,7 +109,9 @@ get_header();
                                     <div class="widget"><div class="pv-market-empty">Döviz verisi şu anda alınamıyor.</div></div>
                                 <?php else : ?>
                                     <div class="widget">
-                                        <div class="borsaValue kurTrade"><span>Alış</span><?php echo esc_html( $buying !== '' ? $buying : '-' ); ?></div>
+                                        <div class="borsaValue kurTrade">
+                                            <span>Alış</span><?php echo esc_html( $buying !== '' ? $buying : '-' ); ?>
+                                        </div>
                                         <div class="borsaValue kurTrade">
                                             <span>Satış</span><?php echo esc_html( $selling !== '' ? $selling : '-' ); ?>
                                             <div class="borsaRate" style="color:<?php echo esc_attr( $color ); ?> !important;">
@@ -89,7 +119,9 @@ get_header();
                                                 (<?php echo esc_html( $change_pct !== '' ? $change_pct : '0,00' ); ?> %)
                                             </div>
                                         </div>
-                                        <?php if ( $update !== '' ) : ?><div class="lastUpdate2">Son Güncelleme: <?php echo esc_html( $update ); ?></div><?php endif; ?>
+                                        <?php if ( $update !== '' ) : ?>
+                                            <div class="lastUpdate2">Son Güncelleme: <?php echo esc_html( $update ); ?></div>
+                                        <?php endif; ?>
                                         <div class="clear"></div>
 
                                         <div class="borsaTimerTabHead bg pv-currency-period-head">
@@ -134,12 +166,22 @@ get_header();
                                             <div class="financeBar">
                                                 <div class="financeBlockBig lastFinanceBlock">
                                                     <div class="financeBlockHead kur"><?php echo esc_html( mb_strtoupper( $name, 'UTF-8' ) ); ?> BANKA KURLARI</div>
-                                                    <div class="currencyShowcase fullShowcase mobileBottomNo">
-                                                        <table class="currencyTable currencyFullTable">
+                                                    <div style="display:flex;" class="bank-table-collapse">
+                                                        <table class="financeTable kurTable firstKur">
                                                             <tr><th>Banka</th><th>Alış</th><th>Satış</th></tr>
-                                                            <?php foreach ( $banks as $bank ) : ?>
+                                                            <?php foreach ( $bank_chunks[0] as $bank ) : ?>
                                                                 <tr>
-                                                                    <td><?php echo esc_html( $bank['name'] ); ?></td>
+                                                                    <td class="bank-name" style="white-space:nowrap;"><?php echo esc_html( $bank['name'] ); ?></td>
+                                                                    <td><?php echo esc_html( $bank['buying'] ); ?></td>
+                                                                    <td><?php echo esc_html( $bank['selling'] ); ?></td>
+                                                                </tr>
+                                                            <?php endforeach; ?>
+                                                        </table>
+                                                        <table class="financeTable kurTable lastKur" style="overflow:hidden;line-height:42px;">
+                                                            <tr><th>Banka</th><th>Alış</th><th>Satış</th></tr>
+                                                            <?php foreach ( $bank_chunks[1] as $bank ) : ?>
+                                                                <tr>
+                                                                    <td class="bank-name" style="white-space:nowrap;"><?php echo esc_html( $bank['name'] ); ?></td>
                                                                     <td><?php echo esc_html( $bank['buying'] ); ?></td>
                                                                     <td><?php echo esc_html( $bank['selling'] ); ?></td>
                                                                 </tr>
