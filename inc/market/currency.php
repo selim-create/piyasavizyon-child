@@ -85,7 +85,7 @@ function pv_market_currency_mynet_chart( $code ) {
     }
 
     $html = pv_market_fetch_mynet( '/doviz/' . rawurlencode( $code ) . '/' );
-    if ( $html === '' || ! preg_match( '@initChartData\(\{(.*?)\}\)@si', $html, $match ) ) {
+    if ( $html === '' || ! preg_match( '@initChartData\\(\\{(.*?)\\}\\)@si', $html, $match ) ) {
         return array();
     }
 
@@ -93,12 +93,28 @@ function pv_market_currency_mynet_chart( $code ) {
     return isset( $chart['data'] ) && is_array( $chart['data'] ) ? array_values( $chart['data'] ) : array();
 }
 
+function pv_market_currency_bank_source_slug( $detail ) {
+    $code = isset( $detail['code'] ) ? strtolower( sanitize_key( (string) $detail['code'] ) ) : '';
+
+    $map = array(
+        'usd' => 'amerikan-dolari',
+        'eur' => 'euro',
+        'gbp' => 'sterlin',
+    );
+
+    if ( isset( $map[ $code ] ) ) {
+        return $map[ $code ];
+    }
+
+    return ! empty( $detail['name'] ) ? sanitize_title( (string) $detail['name'] ) : '';
+}
+
 function pv_market_currency_bank_rows( $detail ) {
     if ( empty( $detail['name'] ) || ! class_exists( 'DOMDocument' ) ) {
         return array();
     }
 
-    $source_slug = sanitize_title( (string) $detail['name'] );
+    $source_slug = pv_market_currency_bank_source_slug( $detail );
     if ( $source_slug === '' ) {
         return array();
     }
