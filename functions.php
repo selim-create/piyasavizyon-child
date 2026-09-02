@@ -13,6 +13,7 @@ require_once __DIR__ . '/inc/credit-rewrites.php';
 require_once __DIR__ . '/inc/global-assets.php';
 require_once __DIR__ . '/inc/gam-runtime.php';
 require_once __DIR__ . '/inc/member-runtime.php';
+require_once __DIR__ . '/inc/member-avatar.php';
 require_once __DIR__ . '/inc/member-market-runtime.php';
 require_once __DIR__ . '/functions-legacy.php';
 require_once __DIR__ . '/inc/registration-security.php';
