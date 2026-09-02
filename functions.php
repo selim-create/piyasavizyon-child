@@ -9,6 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  */
 require_once __DIR__ . '/inc/market/bootstrap.php';
 require_once __DIR__ . '/inc/credit-runtime.php';
+require_once __DIR__ . '/inc/credit-rewrites.php';
 require_once __DIR__ . '/functions-legacy.php';
 require_once __DIR__ . '/inc/registration-security.php';
 require_once __DIR__ . '/inc/registration-security-hotfix.php';
