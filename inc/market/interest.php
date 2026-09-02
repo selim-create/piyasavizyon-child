@@ -37,41 +37,35 @@ function pv_market_interest_rows( $type = 'try' ) {
     }
 
     $xpath = new DOMXPath( $dom );
-    $bodies = $xpath->query( '//tbody[contains(concat(" ", normalize-space(@class), " "), " tbody-type-default ")]' );
-    if ( ! $bodies || $bodies->length < 1 ) {
+    $tables = $xpath->query( '//table[contains(concat(" ", normalize-space(@class), " "), " finans-data-table ")]' );
+    if ( ! $tables || $tables->length < 3 ) {
         return array();
     }
 
     $index = array( 'try' => 0, 'usd' => 1, 'eur' => 2 );
-    $body = $bodies->item( $index[ $type ] );
-    if ( ! $body ) {
+    $table = $tables->item( $index[ $type ] );
+    if ( ! $table ) {
         return array();
     }
 
     $rows = array();
-    foreach ( $xpath->query( './tr', $body ) as $tr ) {
-        $name_node = $xpath->query( './/span[contains(concat(" ", normalize-space(@class), " "), " mr-2 ")]', $tr )->item( 0 );
-        $cells = $xpath->query( './td[contains(concat(" ", normalize-space(@class), " "), " text-center ")]', $tr );
-        if ( ! $name_node || ! $cells || $cells->length < 1 ) {
+    foreach ( $xpath->query( './/tr[td]', $table ) as $tr ) {
+        $cells = $xpath->query( './td', $tr );
+        if ( ! $cells || $cells->length < 5 ) {
             continue;
         }
 
-        $values = array();
-        foreach ( $cells as $cell ) {
-            $values[] = pv_market_decode_text( $cell->textContent );
-        }
-
-        $name = pv_market_decode_text( $name_node->textContent );
+        $name = pv_market_decode_text( $cells->item( 0 )->textContent );
         if ( $name === '' ) {
             continue;
         }
 
         $rows[] = array(
             'bank' => $name,
-            'm1'   => isset( $values[0] ) ? $values[0] : '',
-            'm3'   => isset( $values[1] ) ? $values[1] : '',
-            'm6'   => isset( $values[2] ) ? $values[2] : '',
-            'm12'  => isset( $values[3] ) ? $values[3] : '',
+            'm1'   => pv_market_decode_text( $cells->item( 1 )->textContent ),
+            'm3'   => pv_market_decode_text( $cells->item( 2 )->textContent ),
+            'm6'   => pv_market_decode_text( $cells->item( 3 )->textContent ),
+            'm12'  => pv_market_decode_text( $cells->item( 4 )->textContent ),
         );
     }
 
