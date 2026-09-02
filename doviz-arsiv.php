@@ -2,193 +2,107 @@
 /*
   Template Name: Döviz Arşiv
 */
-// Child theme override: original BirFinans data/parsing logic preserved; scoped wrapper and modern market sidebar added for Piyasa Vizyon styling.
+if ( ! defined( 'ABSPATH' ) ) { exit; }
+
+$requested_date = isset( $_GET['tarih'] ) ? sanitize_text_field( wp_unslash( $_GET['tarih'] ) ) : '';
+$archive        = pv_market_currency_archive( $requested_date );
+$archive_date   = isset( $archive['date'] ) ? (string) $archive['date'] : pv_market_currency_archive_normalize_date( '' );
+$rows           = isset( $archive['rows'] ) && is_array( $archive['rows'] ) ? $archive['rows'] : array();
 
 get_header();
-$_GET['tarih'] = htmlentities($_GET['tarih']);
-if(empty($_GET['tarih'])) {
-  $kaynak = get_url_curl("https://finans.mynet.com/doviz/arsiv/");
-  $_GET['tarih'] = date("Y-m-d");
-}else{
-  $cleanDate = date("d.m.Y", strtotime($_GET['tarih']));
-  $kaynak = get_url_curl("https://finans.mynet.com/doviz/arsiv/".$cleanDate . '/');
-
-}
-
-preg_match_all('@<table class="scrollable wfull table-data search-table ">(.*?)</table>@si', $kaynak, $doviz_area);
-preg_match_all('@<strong class="mr-4"><a href="https://finans.mynet.com/doviz/(.*?)/" title="(.*?)">(.*?)</a></strong>@si', $doviz_area[1][0], $doviz_name);
-preg_match_all('@<td class="text-center">(.*?)</td>@si', $doviz_area[1][0], $table);
-
 ?>
 <style>
-  .currencyTable tr th{
-    font-weight: 500;
-  }
-
-  .currencyTable tr td b{
-    color: #3b72de !important;
-  }
-  input[type=date]::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    display: none;
+.pv-market-currency-archive-native .pv-currency-archive-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;}
+.pv-market-currency-archive-native .pv-currency-archive-head .postTitle{width:auto;float:none;margin:0;}
+.pv-market-currency-archive-native .pv-currency-date{padding:10px 12px;border:1px solid #dcdcdc;border-radius:8px;background:#fff;min-width:180px;}
+.pv-market-currency-archive-native .currencyTable tr th{font-weight:600;}
+.pv-market-currency-archive-native .currencyTable tr td b{color:#3b72de!important;}
+.pv-market-currency-archive-native .pv-currency-code{display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:24px;border-radius:999px;background:#eef4ff;color:#2057b8;font-size:11px;font-weight:700;margin-right:8px;vertical-align:middle;}
+.pv-market-currency-archive-native .pv-market-empty{padding:22px;text-align:center;color:#667085;}
+@media(max-width:760px){
+  .pv-market-currency-archive-native .pv-currency-archive-head{align-items:flex-start;flex-direction:column;}
+  .pv-market-currency-archive-native .pv-currency-date{width:100%;min-width:0;}
+  .pv-market-currency-archive-native .pv-currency-archive-table{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .pv-market-currency-archive-native .pv-currency-archive-table table{min-width:720px;}
 }
 </style>
-<!-- Site Wrapper -->
-	<div class="site-wrapper pv-market-native pv-market-currency-archive-native">
+<div class="site-wrapper pv-market-native pv-market-currency-archive-native">
+    <section class="content home">
+        <div class="container-wrap">
+            <div class="widebar floatLeft">
+                <div class="singleWrapper">
+                    <div class="breadcrumb">
+                        <ul class="block">
+                            <li><a href="<?php echo esc_url( home_url( '/' ) ); ?>">Anasayfa<i>/</i></a></li>
+                            <li class="post bg"><span><?php the_title(); ?></span></li>
+                        </ul>
+                    </div>
 
-		<!-- Content -->
-		<section class="content home">
-			<div class="container-wrap">
+                    <div class="pv-currency-archive-head">
+                        <h1 class="postTitle"><?php the_title(); ?></h1>
+                        <input type="date" value="<?php echo esc_attr( $archive_date ); ?>" id="DateSelection" class="pv-currency-date" max="<?php echo esc_attr( wp_date( 'Y-m-d', current_time( 'timestamp' ) ) ); ?>" />
+                    </div>
 
-				<!-- WideBar -->
-				<div class="widebar floatLeft">
+                    <div class="pv-market-list-content pv-currency-archive-content">
+                        <div class="mainContent">
+                            <div class="main">
+                                <div class="widget">
+                                    <?php if ( $rows ) : ?>
+                                        <div class="currencyShowcase fullShowcase mobileBottomNo pv-currency-archive-table">
+                                            <table class="currencyTable currencyFullTable">
+                                                <tr>
+                                                    <th>Döviz</th>
+                                                    <th>Açılış</th>
+                                                    <th>En Düşük</th>
+                                                    <th>En Yüksek</th>
+                                                    <th>Kapanış</th>
+                                                </tr>
+                                                <?php foreach ( $rows as $row ) : ?>
+                                                    <?php
+                                                    $code = ! empty( $row['code'] ) ? strtolower( sanitize_key( (string) $row['code'] ) ) : '';
+                                                    $url  = $code !== '' ? pv_market_currency_detail_url( $code ) : '';
+                                                    ?>
+                                                    <tr>
+                                                        <td>
+                                                            <?php if ( $url !== '' ) : ?><a href="<?php echo esc_url( $url ); ?>"><?php endif; ?>
+                                                                <?php if ( $code !== '' ) : ?><span class="pv-currency-code"><?php echo esc_html( strtoupper( $code ) ); ?></span><?php endif; ?>
+                                                                <b><?php echo esc_html( $row['name'] ); ?></b>
+                                                            <?php if ( $url !== '' ) : ?></a><?php endif; ?>
+                                                        </td>
+                                                        <td><?php echo esc_html( $row['open'] ); ?></td>
+                                                        <td><?php echo esc_html( $row['low'] ); ?></td>
+                                                        <td><?php echo esc_html( $row['high'] ); ?></td>
+                                                        <td><?php echo esc_html( $row['close'] ); ?></td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            </table>
+                                        </div>
+                                    <?php else : ?>
+                                        <div class="pv-market-empty">Seçilen tarih için döviz arşiv verisi bulunamadı.</div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-					<div class="singleWrapper">
-
-						<!-- BreadCrumb -->
-						<div class="breadcrumb">
-							<ul class="block">
-								<li><a href="<?php bloginfo('home')?>">Anasayfa<i>/</i></a></li>
-								<li class="post bg"><span><?php the_title() ?></span></li>
-							</ul>
-						</div>
-
-						<h1 class="postTitle" style="width: auto; float:left;"><?php the_title() ?></h1>
-            <input type="date" value="<?=$_GET['tarih']?>" onchange="changeDate(this.value)" id="DateSelection" style="float: right;
-
-padding: 10px;
-border: 1px solid #dcdcdc;
-<?php if(wp_is_mobile()) {
-  ?>
-
-  width: 140px;
-  margin-top: 0px;
-  <?php }else{ ?>
-      margin-top: 18px;
-      width: 200px;
-      <?php } ?>
-"/>
-
-
-
-						<div class="pv-market-list-content pv-currency-archive-content">
-
-							<!-- Main Content -->
-							<div class="mainContent">
-
-								<!-- Main -->
-								<div class="main">
-
-									<!-- widget -->
-									<div class="widget">
-										<!-- Currency Showcase -->
-										<div class="currencyShowcase fullShowcase mobileBottomNo">
-                      <?php if(wp_is_mobile()){
-                        ?>
-                        <table class="currencyTable currencyFullTable">
-													<tr>
-                            <th style="width: 70% !important;display: inline-block;">Döviz</th>
-                            <th class="sagagit2" style="padding-left: 15px !important;width: 20%;display: inline-block;padding-left: 0;">Açılış</th>
-													</tr>
-                          <?php foreach(array_unique($doviz_name[1]) as $key=>$val):
-                              $doviz_name[2][$key] = str_replace("&Ouml;zel &Ccedil;ekme Hakkı", "Ö. Çekme Hakkı",$doviz_name[2][$key]);
-                              ?>
-
-                            <tr class="alt dKurlariS">
-                              <?php
-                              if(10 > $key){
-                                ?>
-                                <td style="width: 70% !important;float: left;"><a href="<?php bloginfo("home")?>/<?=$bp_options['page_doviz']?>?c=<?=explode("-",$doviz_name[1][$key])[0]?>"><img src="<?php bloginfo('template_directory'); ?>/img/flag/<?=explode("-",$doviz_name[1][$key])[0]?>.png" width="24" height="16" alt="<?=$doviz_name[2][$key]?>"> <b><?=$doviz_name[2][$key]?></b></a></td>
-                                <?php
-                              }else{
-                                ?>
-                                  <td style="width: 70% !important;float: left;"><a href="<?php bloginfo("home")?>/<?=$bp_options['page_doviz']?>?c=<?=explode("-",$doviz_name[1][$key])[0]?>"><img src="<?php bloginfo('template_directory'); ?>/img/dgr.png" width="24" height="16" alt="<?=$doviz_name[2][$key]?>"> <b><?=$doviz_name[2][$key]?></b></a></td>
-                                <?php
-                              }
-
-                              if($key == 0){
-                                $basla = 1;
-                              }else{
-                                $basla = $key*5+1;
-                              }
-                               ?>
-  							                      <td style="width: 20%;display: inline-block;padding-left:0px;"></i> <span><?=$table[1][$basla]?></td>
-  													</tr>
-                          <?php endforeach; ?>
-												</table>
-
-                      <?php }else{
-                        ?>
-                        <table class="currencyTable currencyFullTable">
-													<tr>
-														<th>Döviz</th>
-														<th>Açılış</th>
-                            <th>En Düşük</th>
-                            <th>En Yüksek</th>
-                            <th>Kapanış</th>
-													</tr>
-                          <?php foreach(array_unique($doviz_name[1]) as $key=>$val):
-                              $doviz_name[2][$key] = str_replace("&Ouml;zel &Ccedil;ekme Hakkı", "Ö. Çekme Hakkı",$doviz_name[2][$key]);
-                              ?>
-                            <tr>
-                              <?php
-                              if(10 > $key){
-                                ?>
-                                <td><a href="<?php bloginfo("home")?>/<?=$bp_options['page_doviz']?>?c=<?=explode("-",$doviz_name[1][$key])[0]?>"><img src="<?php bloginfo('template_directory'); ?>/img/flag/<?=explode("-",$doviz_name[1][$key])[0]?>.png" width="24" height="16" alt="<?=$doviz_name[2][$key]?>"> <b><?=$doviz_name[2][$key]?></b></a></td>
-                                <?php
-                              }else{
-                                ?>
-                                  <td style="width: 70% !important;float: left;"><a href="<?php bloginfo("home")?>/<?=$bp_options['page_doviz']?>?c=<?=explode("-",$doviz_name[1][$key])[0]?>"><img src="<?php bloginfo('template_directory'); ?>/img/dgr.png" width="24" height="16" alt="<?=$doviz_name[2][$key]?>"> <b><?=$doviz_name[2][$key]?></b></a></td>
-                                <?php
-                              }
-
-                              if($key == 0){
-                                $basla = 1;
-                              }else{
-                                $basla = $key*5+1;
-                              }
-                               ?>
-
-  															<td style="font-weight: 500;"> <?=$table[1][$basla]?></td>
-                                <td style="font-weight: normal;"><?=$table[1][$basla+1]?></td>
-                                <td style="font-weight: normal;"><?=$table[1][$basla+2]?></td>
-                                <td style="padding: 0 15px;font-weight: normal;"><?=$table[1][$basla+3]?></td>
-  													</tr>
-                          <?php endforeach; ?>
-												</table>
-                        <?php
-                      }?>
-											</div>
-											<!-- //Currency Showcase -->
-									</div>
-									<!-- //widget -->
-
-								</div>
-
-
-							</div>
-							<!-- #MainBar -->
-
-
-						</div>
-
-					</div>
-
-				</div>
-            <?php if (!wp_is_mobile() && function_exists('pv_v7_market_sidebar')) {
-                pv_v7_market_sidebar('doviz-arsivi');
+            <?php if ( ! wp_is_mobile() && function_exists( 'pv_v7_market_sidebar' ) ) {
+                pv_v7_market_sidebar( 'doviz-arsivi' );
             } ?>
-			</div>
-		</section>
-		<!-- Content -->
-		<div class="clear"></div>
-
-	</div>
-	<!-- #Site Wrapper -->
-  <script>
-function changeDate(val){
-    window.location.href = "<?=home_url("/doviz-arsiv/?tarih=")?>"+val;
-
-}
-  </script>
-  <?php get_footer(); ?>
+        </div>
+    </section>
+    <div class="clear"></div>
+</div>
+<script>
+(function(){
+    var input = document.getElementById('DateSelection');
+    if (!input) return;
+    input.addEventListener('change', function(){
+        var value = input.value || '';
+        var target = <?php echo wp_json_encode( home_url( '/doviz-arsiv/' ) ); ?>;
+        window.location.href = target + '?tarih=' + encodeURIComponent(value);
+    });
+})();
+</script>
+<?php get_footer(); ?>
