@@ -21,17 +21,9 @@ $chart      = isset( $detail['chart'] ) && is_array( $detail['chart'] ) ? array_
 $banks      = isset( $detail['banks'] ) && is_array( $detail['banks'] ) ? array_values( $detail['banks'] ) : array();
 $windows    = pv_market_currency_chart_windows();
 
-$bank_chunks = array( array(), array() );
-if ( $banks ) {
-    $bank_chunks = array_chunk( $banks, (int) ceil( count( $banks ) / 2 ) );
-    if ( ! isset( $bank_chunks[1] ) ) {
-        $bank_chunks[1] = array();
-    }
-}
-
 $numeric_change = (float) str_replace( array( '.', ',', '%' ), array( '', '.', '' ), $change_pct );
 $direction      = $numeric_change > 0 ? 'increase' : ( $numeric_change < 0 ? 'decrease' : 'neutral' );
-$color          = $numeric_change > 0 ? '#32ba5b' : ( $numeric_change < 0 ? '#ef291f' : '#667085' );
+$change_class   = $numeric_change > 0 ? 'is-up' : ( $numeric_change < 0 ? 'is-down' : 'is-flat' );
 
 $status_liste = false;
 $alarm_liste  = false;
@@ -53,6 +45,183 @@ add_filter( 'pre_get_document_title', function() use ( $name ) {
 get_header();
 ?>
 <script src="https://code.highcharts.com/7.1.1/highcharts.js"></script>
+
+<style>
+html body .pv-market-currency-detail-child .pv-currency-native-card,
+html body .pv-market-currency-detail-child .pv-currency-bank-card{
+    width:100%;
+    margin:0 0 18px;
+    padding:20px;
+    background:#fff;
+    border:1px solid #dce8f6;
+    border-radius:22px;
+    box-shadow:0 14px 36px rgba(8,35,78,.07);
+}
+html body .pv-market-currency-detail-child .pv-currency-price-grid{
+    display:grid;
+    grid-template-columns:minmax(0,180px) minmax(0,180px) minmax(180px,1fr);
+    gap:14px;
+    align-items:stretch;
+}
+html body .pv-market-currency-detail-child .pv-currency-price-box{
+    min-height:92px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:14px 16px;
+    background:#fbfdff;
+    border:1px solid #dce8f6;
+    border-radius:18px;
+}
+html body .pv-market-currency-detail-child .pv-currency-price-box small{
+    display:block;
+    margin-bottom:7px;
+    color:#58708d;
+    font-size:11px;
+    font-weight:900;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+}
+html body .pv-market-currency-detail-child .pv-currency-price-box strong{
+    color:#10203b;
+    font-size:23px;
+    line-height:1;
+    font-weight:900;
+}
+html body .pv-market-currency-detail-child .pv-currency-change{
+    margin-top:7px;
+    font-size:12px;
+    font-weight:900;
+}
+html body .pv-market-currency-detail-child .pv-currency-change.is-up{color:#16a56d}
+html body .pv-market-currency-detail-child .pv-currency-change.is-down{color:#ef291f}
+html body .pv-market-currency-detail-child .pv-currency-change.is-flat{color:#667085}
+html body .pv-market-currency-detail-child .pv-currency-updated{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:92px;
+    padding:14px 18px;
+    border-radius:18px;
+    background:#eef5ff;
+    color:#58708d;
+    font-size:12px;
+    font-weight:900;
+    text-align:center;
+}
+html body .pv-market-currency-detail-child .pv-currency-toolbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    margin-top:16px;
+    padding:10px;
+    background:#f5f9ff;
+    border:1px solid #dce8f6;
+    border-radius:18px;
+}
+html body .pv-market-currency-detail-child .pv-currency-periods,
+html body .pv-market-currency-detail-child .pv-currency-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    align-items:center;
+}
+html body .pv-market-currency-detail-child .pv-currency-period{
+    appearance:none;
+    border:1px solid #d7e4f5;
+    background:#fff;
+    color:#58708d;
+    border-radius:12px;
+    min-height:38px;
+    padding:0 13px;
+    font:inherit;
+    font-size:11px;
+    font-weight:900;
+    cursor:pointer;
+}
+html body .pv-market-currency-detail-child .pv-currency-period.active{
+    background:#0758c9;
+    border-color:#0758c9;
+    color:#fff;
+}
+html body .pv-market-currency-detail-child .pv-currency-action{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:38px;
+    padding:0 14px;
+    border-radius:12px;
+    color:#fff !important;
+    font-size:11px;
+    font-weight:900;
+    text-decoration:none !important;
+}
+html body .pv-market-currency-detail-child .pv-currency-action.is-list{background:#0758c9}
+html body .pv-market-currency-detail-child .pv-currency-action.is-alarm{background:#ef4444}
+html body .pv-market-currency-detail-child .pv-currency-chart-panel{
+    margin-top:16px;
+    padding:0;
+}
+html body .pv-market-currency-detail-child .pv-currency-chart{
+    width:100%;
+    min-height:360px;
+    border:1px solid #dce8f6;
+    border-radius:18px;
+    overflow:hidden;
+    background:#fff;
+}
+html body .pv-market-currency-detail-child .pv-currency-market-note{
+    margin:12px 2px 0;
+    color:#687991;
+    font-size:12px;
+}
+html body .pv-market-currency-detail-child .pv-currency-bank-title{
+    margin:0 0 14px;
+    color:#10203b;
+    font-size:15px;
+    font-weight:900;
+}
+html body .pv-market-currency-detail-child .pv-currency-bank-wrap{
+    width:100%;
+    overflow:auto;
+}
+html body .pv-market-currency-detail-child table.pv-currency-bank-table{
+    width:100%;
+    min-width:520px;
+    border-collapse:collapse;
+    border-spacing:0;
+    font-size:12px;
+}
+html body .pv-market-currency-detail-child .pv-currency-bank-table th{
+    padding:10px 12px;
+    border-bottom:1px solid #dce8f6;
+    color:#7b8ca5;
+    text-align:left;
+    font-size:10px;
+    font-weight:900;
+    text-transform:uppercase;
+}
+html body .pv-market-currency-detail-child .pv-currency-bank-table td{
+    padding:11px 12px;
+    border-bottom:1px solid #edf2f8;
+    background:#fff;
+    color:#243550;
+}
+html body .pv-market-currency-detail-child .pv-currency-bank-table td:first-child{font-weight:800}
+@media(max-width:760px){
+    html body .pv-market-currency-detail-child .pv-currency-price-grid{grid-template-columns:1fr 1fr}
+    html body .pv-market-currency-detail-child .pv-currency-updated{grid-column:1 / -1;min-height:58px}
+    html body .pv-market-currency-detail-child .pv-currency-toolbar{align-items:stretch;flex-direction:column}
+    html body .pv-market-currency-detail-child .pv-currency-periods,
+    html body .pv-market-currency-detail-child .pv-currency-actions{width:100%}
+    html body .pv-market-currency-detail-child .pv-currency-period{flex:1 1 calc(33.333% - 8px)}
+    html body .pv-market-currency-detail-child .pv-currency-action{flex:1 1 calc(50% - 8px)}
+    html body .pv-market-currency-detail-child .pv-currency-chart{min-height:300px}
+}
+</style>
+
 <div class="site-wrapper pv-market-native pv-market-currency-detail-native pv-market-currency-detail-child">
     <section class="content home">
         <div class="container-wrap">
@@ -98,7 +267,6 @@ get_header();
                                 </div>
                             <?php endif; ?>
                         </div>
-
                         <div class="clearfix"></div>
                     </section>
 
@@ -106,91 +274,82 @@ get_header();
                         <div class="mainContent">
                             <div class="main">
                                 <?php if ( empty( $detail['name'] ) ) : ?>
-                                    <div class="widget"><div class="pv-market-empty">Döviz verisi şu anda alınamıyor.</div></div>
+                                    <div class="pv-currency-native-card"><div class="pv-market-empty">Döviz verisi şu anda alınamıyor.</div></div>
                                 <?php else : ?>
-                                    <div class="widget">
-                                        <div class="borsaValue kurTrade">
-                                            <span>Alış</span><?php echo esc_html( $buying !== '' ? $buying : '-' ); ?>
-                                        </div>
-                                        <div class="borsaValue kurTrade">
-                                            <span>Satış</span><?php echo esc_html( $selling !== '' ? $selling : '-' ); ?>
-                                            <div class="borsaRate" style="color:<?php echo esc_attr( $color ); ?> !important;">
-                                                <?php if ( $direction !== 'neutral' ) : ?><i class="<?php echo esc_attr( $direction ); ?>"></i><?php endif; ?>
-                                                (<?php echo esc_html( $change_pct !== '' ? $change_pct : '0,00' ); ?> %)
+                                    <section class="pv-currency-native-card">
+                                        <div class="pv-currency-price-grid">
+                                            <div class="pv-currency-price-box">
+                                                <small>Alış</small>
+                                                <strong><?php echo esc_html( $buying !== '' ? $buying : '-' ); ?></strong>
+                                            </div>
+                                            <div class="pv-currency-price-box">
+                                                <small>Satış</small>
+                                                <strong><?php echo esc_html( $selling !== '' ? $selling : '-' ); ?></strong>
+                                                <div class="pv-currency-change <?php echo esc_attr( $change_class ); ?>">
+                                                    <?php echo $direction === 'increase' ? '▲' : ( $direction === 'decrease' ? '▼' : '•' ); ?>
+                                                    <?php echo esc_html( $change_pct !== '' ? $change_pct : '0,00' ); ?>%
+                                                </div>
+                                            </div>
+                                            <div class="pv-currency-updated">
+                                                <?php echo $update !== '' ? esc_html( 'Son Güncelleme: ' . $update ) : 'Güncelleme bilgisi yok'; ?>
                                             </div>
                                         </div>
-                                        <?php if ( $update !== '' ) : ?>
-                                            <div class="lastUpdate2">Son Güncelleme: <?php echo esc_html( $update ); ?></div>
-                                        <?php endif; ?>
-                                        <div class="clear"></div>
 
-                                        <div class="borsaTimerTabHead bg pv-currency-period-head">
-                                            <ul>
+                                        <div class="pv-currency-toolbar">
+                                            <div class="pv-currency-periods">
                                                 <?php $first = true; foreach ( $windows as $window_key => $window ) : ?>
-                                                    <li class="<?php echo $first ? 'active' : ''; ?>" data-pv-currency-window="<?php echo esc_attr( $window_key ); ?>"><span><?php echo esc_html( $window['label'] ); ?></span></li>
+                                                    <button type="button" class="pv-currency-period <?php echo $first ? 'active' : ''; ?>" data-pv-currency-window="<?php echo esc_attr( $window_key ); ?>"><?php echo esc_html( $window['label'] ); ?></button>
                                                 <?php $first = false; endforeach; ?>
-                                            </ul>
-                                            <div class="userNotification">
+                                            </div>
+                                            <div class="pv-currency-actions">
                                                 <?php if ( is_user_logged_in() ) : ?>
                                                     <?php if ( $status_liste ) : ?>
-                                                        <a href="javascript:;" onclick="listedenCikar('<?php echo esc_js( $key ); ?>')" class="addList">ÇIKAR<i class="remove"></i></a>
+                                                        <a href="javascript:;" onclick="listedenCikar('<?php echo esc_js( $key ); ?>')" class="pv-currency-action is-list">Listeden Çıkar</a>
                                                     <?php else : ?>
-                                                        <a href="javascript:;" onclick="listemeEkle('<?php echo esc_js( $key ); ?>')" class="addList">LİSTEME EKLE<i class="add"></i></a>
+                                                        <a href="javascript:;" onclick="listemeEkle('<?php echo esc_js( $key ); ?>')" class="pv-currency-action is-list">Listeme Ekle</a>
                                                     <?php endif; ?>
                                                     <?php if ( $alarm_liste ) : ?>
-                                                        <a href="javascript:;" onclick="alarmCikar('<?php echo esc_js( $key ); ?>')" class="alarmKur">ÇIKAR <i class="remove"></i></a>
+                                                        <a href="javascript:;" onclick="alarmCikar('<?php echo esc_js( $key ); ?>')" class="pv-currency-action is-alarm">Alarmı Kaldır</a>
                                                     <?php else : ?>
-                                                        <a href="javascript:;" onclick="alarmKur('<?php echo esc_js( $key ); ?>')" class="alarmKur">ALARM KUR <i class="ring"></i></a>
+                                                        <a href="javascript:;" onclick="alarmKur('<?php echo esc_js( $key ); ?>')" class="pv-currency-action is-alarm">Alarm Kur</a>
                                                     <?php endif; ?>
                                                 <?php else : ?>
-                                                    <a href="javascript:;" onclick="girisYap();" class="addList">LİSTEME EKLE <i class="add"></i></a>
-                                                    <a href="javascript:;" onclick="girisYap();" class="alarmKur">ALARM KUR <i class="ring"></i></a>
+                                                    <a href="javascript:;" onclick="girisYap();" class="pv-currency-action is-list">Listeme Ekle</a>
+                                                    <a href="javascript:;" onclick="girisYap();" class="pv-currency-action is-alarm">Alarm Kur</a>
                                                 <?php endif; ?>
                                             </div>
                                         </div>
 
                                         <?php $first = true; foreach ( $windows as $window_key => $window ) : ?>
-                                            <div class="borsaTimerTabContent pv-currency-chart-panel" data-pv-currency-window-panel="<?php echo esc_attr( $window_key ); ?>" style="<?php echo $first ? 'display:block;' : 'display:none;'; ?>">
+                                            <div class="pv-currency-chart-panel" data-pv-currency-window-panel="<?php echo esc_attr( $window_key ); ?>" style="<?php echo $first ? 'display:block;' : 'display:none;'; ?>">
                                                 <?php if ( $chart ) : ?>
-                                                    <div class="currencyChart" id="pv_currency_<?php echo esc_attr( $window_key ); ?>"></div>
+                                                    <div class="pv-currency-chart" id="pv_currency_<?php echo esc_attr( $window_key ); ?>"></div>
                                                 <?php else : ?>
                                                     <div class="pv-market-empty">Grafik verisi şu anda alınamıyor.</div>
                                                 <?php endif; ?>
                                             </div>
                                         <?php $first = false; endforeach; ?>
-                                        <p>* Piyasaların kapalı olduğu gün ve saatlerde veri akışı bulunmamaktadır.</p>
-                                    </div>
+                                        <p class="pv-currency-market-note">* Piyasaların kapalı olduğu gün ve saatlerde veri akışı bulunmamaktadır.</p>
+                                    </section>
 
                                     <?php if ( $banks ) : ?>
-                                        <div class="widget">
-                                            <div class="financeBar">
-                                                <div class="financeBlockBig lastFinanceBlock">
-                                                    <div class="financeBlockHead kur"><?php echo esc_html( mb_strtoupper( $name, 'UTF-8' ) ); ?> BANKA KURLARI</div>
-                                                    <div style="display:flex;" class="bank-table-collapse">
-                                                        <table class="financeTable kurTable firstKur">
-                                                            <tr><th>Banka</th><th>Alış</th><th>Satış</th></tr>
-                                                            <?php foreach ( $bank_chunks[0] as $bank ) : ?>
-                                                                <tr>
-                                                                    <td class="bank-name" style="white-space:nowrap;"><?php echo esc_html( $bank['name'] ); ?></td>
-                                                                    <td><?php echo esc_html( $bank['buying'] ); ?></td>
-                                                                    <td><?php echo esc_html( $bank['selling'] ); ?></td>
-                                                                </tr>
-                                                            <?php endforeach; ?>
-                                                        </table>
-                                                        <table class="financeTable kurTable lastKur" style="overflow:hidden;line-height:42px;">
-                                                            <tr><th>Banka</th><th>Alış</th><th>Satış</th></tr>
-                                                            <?php foreach ( $bank_chunks[1] as $bank ) : ?>
-                                                                <tr>
-                                                                    <td class="bank-name" style="white-space:nowrap;"><?php echo esc_html( $bank['name'] ); ?></td>
-                                                                    <td><?php echo esc_html( $bank['buying'] ); ?></td>
-                                                                    <td><?php echo esc_html( $bank['selling'] ); ?></td>
-                                                                </tr>
-                                                            <?php endforeach; ?>
-                                                        </table>
-                                                    </div>
-                                                </div>
+                                        <section class="pv-currency-bank-card">
+                                            <h2 class="pv-currency-bank-title"><?php echo esc_html( mb_strtoupper( $name, 'UTF-8' ) ); ?> BANKA KURLARI</h2>
+                                            <div class="pv-currency-bank-wrap">
+                                                <table class="pv-currency-bank-table">
+                                                    <thead><tr><th>Banka</th><th>Alış</th><th>Satış</th></tr></thead>
+                                                    <tbody>
+                                                        <?php foreach ( $banks as $bank ) : ?>
+                                                            <tr>
+                                                                <td><?php echo esc_html( $bank['name'] ); ?></td>
+                                                                <td><?php echo esc_html( $bank['buying'] ); ?></td>
+                                                                <td><?php echo esc_html( $bank['selling'] ); ?></td>
+                                                            </tr>
+                                                        <?php endforeach; ?>
+                                                    </tbody>
+                                                </table>
                                             </div>
-                                        </div>
+                                        </section>
                                     <?php endif; ?>
                                 <?php endif; ?>
                             </div>
@@ -223,26 +382,26 @@ get_header();
             return Array.isArray(point) && point.length >= 2 && (!cutoff || Number(point[0]) >= cutoff);
         });
         Highcharts.chart('pv_currency_' + key, {
-            chart: { zoomType: 'x' },
-            title: { text: name + ' ' + config.title + ' Grafik Tablosu' },
+            chart: { zoomType: 'x', height: 360 },
+            title: { text: name + ' ' + config.title + ' Grafik Tablosu', style: { fontSize: '16px', fontWeight: '700' } },
             xAxis: { type: 'datetime' },
             yAxis: { title: { text: '' } },
             legend: { enabled: false },
+            credits: { enabled: false },
             plotOptions: { area: { marker: { radius: 2 }, lineWidth: 1, states: { hover: { lineWidth: 1 } }, threshold: null } },
             series: [{ type:'area', name:name, data:data }]
         });
     });
 
-    var root = document.querySelector('.pv-currency-period-head');
+    var root = document.querySelector('.pv-currency-native-card');
     if (!root) return;
-    var container = root.closest('.widget');
     root.querySelectorAll('[data-pv-currency-window]').forEach(function(tab){
         tab.addEventListener('click', function(){
             var key = tab.getAttribute('data-pv-currency-window');
             root.querySelectorAll('[data-pv-currency-window]').forEach(function(item){ item.classList.remove('active'); });
-            container.querySelectorAll('[data-pv-currency-window-panel]').forEach(function(item){ item.style.display = 'none'; });
+            root.querySelectorAll('[data-pv-currency-window-panel]').forEach(function(item){ item.style.display = 'none'; });
             tab.classList.add('active');
-            var target = container.querySelector('[data-pv-currency-window-panel="' + key + '"]');
+            var target = root.querySelector('[data-pv-currency-window-panel="' + key + '"]');
             if (target) {
                 target.style.display = 'block';
                 setTimeout(function(){ window.Highcharts.charts.forEach(function(chart){ if (chart) chart.reflow(); }); }, 0);
