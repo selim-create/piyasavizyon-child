@@ -42,7 +42,7 @@ function pv_v7_canonicalise_legal_home_url( $url, $path ) {
     $normalised = '/' . trim( (string) $path, '/' ) . '/';
 
     if ( isset( $map[ $normalised ] ) ) {
-        return home_url( $map[ $normalised ] );
+        return trailingslashit( get_option( 'home' ) ) . ltrim( $map[ $normalised ], '/' );
     }
 
     return $url;
@@ -68,7 +68,7 @@ function pv_v7_legal_legacy_redirects() {
     );
 
     if ( isset( $redirects[ $request_path ] ) ) {
-        wp_safe_redirect( home_url( $redirects[ $request_path ] ), 301 );
+        wp_safe_redirect( trailingslashit( get_option( 'home' ) ) . ltrim( $redirects[ $request_path ], '/' ), 301 );
         exit;
     }
 }
