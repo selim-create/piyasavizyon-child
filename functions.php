@@ -20,3 +20,4 @@ require_once __DIR__ . '/inc/legacy-widget-compat.php';
 require_once __DIR__ . '/inc/editorial-runtime.php';
 require_once __DIR__ . '/functions-legacy.php';
 require_once __DIR__ . '/inc/registration-security.php';
+require_once __DIR__ . '/inc/admin-control-center.php';
