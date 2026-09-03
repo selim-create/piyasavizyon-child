@@ -1,0 +1,4 @@
+/* Presentation polish: placeholder social links stay hidden until real profiles are configured. */
+.pv-footer-socials {
+    display: none !important;
+}
