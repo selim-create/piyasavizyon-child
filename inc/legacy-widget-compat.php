@@ -91,3 +91,13 @@ function pv_register_legacy_widget_compat() {
     register_widget( 'PV_Legacy_Home_Ad_Widget' );
 }
 add_action( 'widgets_init', 'pv_register_legacy_widget_compat', 5 );
+
+/**
+ * Keep the classic Widgets admin while legacy widget instances remain in the
+ * production sidebar map. The block-based editor can fail while resolving
+ * classic widget REST endpoints and may rewrite sidebar assignments when that
+ * happens. Classic Widgets can manage these registered WP_Widget instances
+ * directly without adding another plugin dependency.
+ */
+add_filter( 'use_widgets_block_editor', '__return_false', 100 );
+add_filter( 'gutenberg_use_widgets_block_editor', '__return_false', 100 );
