@@ -9,10 +9,16 @@ get_header();
       <span class="pv-corp-kicker">Piyasa Bülteni</span>
       <h1>Günün piyasa özetini ve ekonomi başlıklarını kaçırmayın.</h1>
       <p>Döviz, altın, borsa, kripto para, halka arzlar ve kredi piyasasındaki önemli gelişmelerden haberdar olmak için PiyasaVizyon bültenine kaydolun.</p>
-      <form class="pv-search-form-large" action="mailto:bulten@hipmedya.com" method="post" enctype="text/plain">
-        <input type="email" name="email" placeholder="E-posta adresiniz" required>
-        <button type="submit">Abone Ol</button>
-      </form>
+      <?php if ( function_exists( 'pv_hiposta_render_form' ) ) : ?>
+        <div class="pv-corp-hiposta-newsletter">
+          <?php echo pv_hiposta_render_form( 'piyasavizyon_newsletter_page', 'page' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- trusted plugin renderer output. ?>
+        </div>
+      <?php else : ?>
+        <div class="pv-corp-newsletter-unavailable" role="status">
+          <strong>Bülten aboneliği şu anda kullanılamıyor.</strong>
+          <span>Lütfen kısa süre sonra tekrar deneyin.</span>
+        </div>
+      <?php endif; ?>
     </section>
 
     <div class="pv-corp-grid">
