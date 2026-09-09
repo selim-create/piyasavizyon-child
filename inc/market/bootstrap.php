@@ -122,4 +122,49 @@ function pv_market_prime_legacy_globals() {
     }
 }
 
-add_action( 'after_setup_theme', 'pv_market_prime_legacy_globals', 1 );
+/**
+ * Legacy market globals are only needed while rendering public HTML pages.
+ *
+ * admin-ajax.php, REST, cron and wp-admin requests bootstrap WordPress too, but
+ * they do not render the header/footer ticker. Priming all five market payloads
+ * in those contexts turns every lightweight AJAX request into market cache/API
+ * work and amplifies CPU usage under traffic.
+ *
+ * The filter keeps an explicit escape hatch for a future endpoint that truly
+ * needs the legacy globals.
+ */
+function pv_market_should_prime_legacy_globals() {
+    $should_prime = true;
+
+    if ( is_admin() ) {
+        $should_prime = false;
+    }
+
+    if ( function_exists( 'wp_doing_ajax' ) && wp_doing_ajax() ) {
+        $should_prime = false;
+    }
+
+    if ( function_exists( 'wp_doing_cron' ) && wp_doing_cron() ) {
+        $should_prime = false;
+    }
+
+    if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+        $should_prime = false;
+    }
+
+    if ( defined( 'WP_CLI' ) && WP_CLI ) {
+        $should_prime = false;
+    }
+
+    return (bool) apply_filters( 'pv_market_should_prime_legacy_globals', $should_prime );
+}
+
+function pv_market_prime_legacy_globals_for_request() {
+    if ( ! pv_market_should_prime_legacy_globals() ) {
+        return;
+    }
+
+    pv_market_prime_legacy_globals();
+}
+
+add_action( 'after_setup_theme', 'pv_market_prime_legacy_globals_for_request', 1 );
