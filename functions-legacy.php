@@ -859,47 +859,10 @@ add_action('widgets_init', function(){
 }, 99);
 
 function pv_v7_pageskin_ads(){
-    if (is_404() || is_search()) { return; }
-    $path = isset($_SERVER['REQUEST_URI']) ? trim((string) wp_parse_url(esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])), PHP_URL_PATH), '/') : '';
-    $first = explode('/', $path)[0] ?? $path;
-    $credit_paths = array(
-        'kredi',
-        'kredi-hesapla',
-        'ihtiyac-kredisi',
-        'konut-kredisi',
-        'tasit-kredisi',
-        'kobi-kredisi',
-        'faiz-oranlari',
-        'kredi-faiz-oranlari',
-        'mevduat-oranlari',
-        'piyasanin-nabzi',
-        'trafik-sigortasi',
-        'kasko-sigortasi',
-        'hakkimizda',
-        'kunye',
-        'iletisim',
-        'bize-reklam-ver',
-        'reklam',
-        'bulten',
-        'aydinlatma-metni',
-        'kvkk',
-        'cerez-politikasi',
-        'kullanim-kosullari',
-        'sorumluluk-reddi',
-        'yasal-metinler',
-    );
-    if (in_array($path, $credit_paths, true) || in_array($first, $credit_paths, true)) {
-        return;
-    }
-
-    if (is_active_sidebar('pv_pageskin_left')) {
-        echo '<aside class="pv-pageskin pv-pageskin-left" aria-label="Sol reklam">'; dynamic_sidebar('pv_pageskin_left'); echo '</aside>';
-    }
-    if (is_active_sidebar('pv_pageskin_right')) {
-        echo '<aside class="pv-pageskin pv-pageskin-right" aria-label="Sağ reklam">'; dynamic_sidebar('pv_pageskin_right'); echo '</aside>';
-    }
+    // Legacy 120/160x600 tower units are intentionally disabled on inner/desktop views.
+    // Branded takeovers now use the responsive contextual sponsorship background instead.
+    return;
 }
-add_action('wp_body_open','pv_v7_pageskin_ads', 20);
 
 /* === v2.26: shared inner/sidebar widgets and related posts === */
 function pv_v7_converter_links_widget() {
@@ -943,14 +906,16 @@ function pv_v7_sidebar_gam_ad($area, $label, $class, $fallback_id) {
 
 function pv_v7_inner_sidebar($context='archive') {
     echo '<aside class="sidebar"><div class="sidebar-sticky-inner">';
-    // PV widget alanları boş olsa bile GAM head kodunda tanımlı standart slotları basıyoruz.
-    // Böylece single/archive sayfalarda ana sayfadaki reklam yerleşimi kaybolmaz.
-    pv_v7_sidebar_gam_ad('pv_sidebar_top','300×250 Reklam','ad ad-300x250 pv-ad-desktop','div-gpt-300x250-mr1');
+    // Context sponsorship gets first refusal on the premium 300x250 position.
+    $pv_sponsor_rendered = function_exists('pv_sponsorship_render_sidebar_ad') && pv_sponsorship_render_sidebar_ad();
+    if (!$pv_sponsor_rendered) {
+        pv_v7_sidebar_gam_ad('pv_sidebar_top','300×250 Reklam','ad ad-300x250 pv-ad-desktop','div-gpt-300x250-mr1');
+    }
     pv_v7_converter_links_widget();
-    pv_v7_sidebar_gam_ad('pv_sidebar_mid','320×100 Reklam','ad ad-320 pv-ad-desktop','div-gpt-300x250-mr2');
+    pv_v7_sidebar_gam_ad('pv_sidebar_mid','300×250 Reklam','ad ad-300x250 pv-ad-desktop','div-gpt-300x250-mr2');
     pv_v7_market_summary_widget();
     pv_v7_forex_widget();
-    pv_v7_sidebar_gam_ad('pv_sidebar_sky','300×600 Reklam','ad ad-300x600 pv-ad-desktop','div-gpt-300x600');
+    // Tall 160x600 / 300x600-style inner-page units are intentionally removed on laptop/desktop.
     echo '</div></aside>';
 }
 
@@ -960,12 +925,14 @@ function pv_v7_inner_sidebar($context='archive') {
 if (!function_exists('pv_v7_market_sidebar')) {
     function pv_v7_market_sidebar($context='market') {
         echo '<aside class="sidebar pv-market-sidebar-clean"><div class="sidebar-sticky-inner pv-market-sidebar-inner">';
-        pv_v7_sidebar_gam_ad('pv_sidebar_top','300×250 Reklam','ad ad-300x250 pv-ad-desktop','div-gpt-300x250-mr1');
+        $pv_sponsor_rendered = function_exists('pv_sponsorship_render_sidebar_ad') && pv_sponsorship_render_sidebar_ad();
+        if (!$pv_sponsor_rendered) {
+            pv_v7_sidebar_gam_ad('pv_sidebar_top','300×250 Reklam','ad ad-300x250 pv-ad-desktop','div-gpt-300x250-mr1');
+        }
         pv_v7_market_summary_widget();
         pv_v7_converter_links_widget();
         pv_v7_forex_widget();
         pv_v7_sidebar_gam_ad('pv_sidebar_mid','300×250 Reklam','ad ad-300x250 pv-ad-desktop','div-gpt-300x250-mr2');
-        pv_v7_sidebar_gam_ad('pv_sidebar_sky','300×250 Reklam','ad ad-300x250 pv-ad-desktop','div-gpt-300x250-mr3');
         echo '</div></aside>';
     }
 }
