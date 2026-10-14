@@ -45,7 +45,7 @@
 .pv-sponsor-preview-creative small{font-size:10px;opacity:.65;color:#fff}
 .pv-sponsor-preview-ribbon{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:999999;max-width:calc(100vw - 24px);border-radius:20px;background:#141536;color:#fff;padding:9px 16px;box-shadow:0 10px 35px #001a4070;font:700 11px/1.4 Arial,sans-serif;text-align:center;pointer-events:none}
 @media (min-width:1280px){
-body.pv-sponsorship-preview.pv-sponsorship-active:not([data-pv-real-skin]){background:linear-gradient(90deg,#24175c 0,#39319b calc((100% - 1240px)/2),#eef3fa calc((100% - 1240px)/2),#eef3fa calc((100% + 1240px)/2),#39319b calc((100% + 1240px)/2),#24175c 100%)!important}
+body.pv-sponsorship-preview.pv-sponsorship-active:not(.pv-sponsorship-has-skin){background:linear-gradient(90deg,#24175c 0,#39319b calc((100% - 1240px)/2),#eef3fa calc((100% - 1240px)/2),#eef3fa calc((100% + 1240px)/2),#39319b calc((100% + 1240px)/2),#24175c 100%)!important}
 }
 @media(max-width:767px){
  body.pv-sponsorship-active .pv-sponsor-mobile-skin{display:flex;align-items:center;justify-content:center;position:relative;z-index:2;width:100%;min-height:180px;aspect-ratio:3/2;max-height:250px;background:#221a63 center/cover no-repeat}
@@ -77,10 +77,9 @@ html body.pv-sponsorship-active .sidebar-sticky-inner{
   background-color:transparent!important;
   background-image:none!important;
 }
-/* Make the central column gently translucent without sacrificing readable card contrast.
-   The dark preview side wings remain decorative; a live skin stays visible behind content. */
+/* Preview fallback only: never override an uploaded live image/gif skin. */
 @media(min-width:1280px){
-  html body.pv-sponsorship-preview.pv-sponsorship-active{
+  html body.pv-sponsorship-preview.pv-sponsorship-active:not(.pv-sponsorship-has-skin){
     background:linear-gradient(90deg,#24175c 0,#39319b calc((100% - 1240px)/2),rgba(57,49,155,.18) calc((100% - 1240px)/2),rgba(57,49,155,.18) calc((100% + 1240px)/2),#39319b calc((100% + 1240px)/2),#24175c 100%)!important;
   }
 }
