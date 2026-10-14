@@ -194,14 +194,7 @@ function pv_sponsorship_menu_logo( $nav_label ) {
 
     $brand = trim( (string) $settings['brand'] );
     $title = $brand !== '' ? sprintf( '%s sponsorluğunda', $brand ) : 'Sponsorlu';
-    $logo  = '<img src="' . esc_url( $settings['logo_url'] ) . '" alt="' . esc_attr( $brand ) . '" loading="eager" decoding="async">';
-
-    if ( ! empty( $settings['click_url'] ) ) {
-        echo '<span class="pv-nav-sponsor-logo" title="' . esc_attr( $title ) . '"><a href="' . esc_url( $settings['click_url'] ) . '" target="_blank" rel="sponsored noopener noreferrer" aria-label="' . esc_attr( $title ) . '">' . $logo . '</a></span>';
-        return;
-    }
-
-    echo '<span class="pv-nav-sponsor-logo" title="' . esc_attr( $title ) . '">' . $logo . '</span>';
+    echo '<span class="pv-nav-sponsor-logo" title="' . esc_attr( $title ) . '"><img src="' . esc_url( $settings['logo_url'] ) . '" alt="' . esc_attr( $brand ) . '" loading="eager" decoding="async"></span>';
 }
 
 function pv_sponsorship_body_classes( $classes ) {
