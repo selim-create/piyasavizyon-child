@@ -247,3 +247,4 @@ $pv_nav_items = array(
     </div>
   </section>
 </header>
+<?php if ( function_exists( 'pv_sponsorship_render_mobile_skin' ) ) { pv_sponsorship_render_mobile_skin(); } ?>
