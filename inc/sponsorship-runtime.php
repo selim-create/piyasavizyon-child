@@ -220,6 +220,7 @@ function pv_sponsorship_body_classes( $classes ) {
     if ( pv_sponsorship_is_context() ) {
         $settings  = pv_sponsorship_settings();
         $classes[] = 'pv-sponsorship-active';
+        if ( ! empty( $settings['skin_url'] ) ) { $classes[] = 'pv-sponsorship-has-skin'; }
         if ( pv_sponsorship_is_preview() ) { $classes[] = 'pv-sponsorship-preview'; }
         $classes[] = 'pv-sponsorship-' . sanitize_html_class( $settings['target'] );
     }
