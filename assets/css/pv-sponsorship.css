@@ -1,6 +1,6 @@
 /* Contextual menu/category sponsorship */
 .pv-nav-sponsor-logo{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;margin-left:2px;padding-left:7px;border-left:1px solid rgba(49,67,92,.16);line-height:1}
-.pv-nav-sponsor-logo a{display:inline-flex;align-items:center;line-height:1}.pv-nav-sponsor-logo img{display:block!important;width:auto!important;height:auto!important;max-width:54px!important;max-height:18px!important;object-fit:contain!important}
+.pv-nav-sponsor-logo img{display:block!important;width:auto!important;height:auto!important;max-width:54px!important;max-height:18px!important;object-fit:contain!important}
 .pv-h-rail-item.is-active .pv-nav-sponsor-logo,
 .pv-h-rail-item:hover .pv-nav-sponsor-logo{border-left-color:rgba(255,255,255,.34)}
 .pv-h-identity-menu-link .pv-nav-sponsor-logo img{max-width:48px!important;max-height:16px!important}
