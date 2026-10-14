@@ -240,6 +240,9 @@ function pv_control_center_render_ads() {
         </div>
     </section>
     <?php
+    if ( function_exists( 'pv_sponsorship_admin_panel' ) ) {
+        pv_sponsorship_admin_panel();
+    }
 }
 
 function pv_control_center_render_security() {

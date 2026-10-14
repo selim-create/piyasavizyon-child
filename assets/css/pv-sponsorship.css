@@ -1,0 +1,37 @@
+/* Contextual menu/category sponsorship */
+.pv-nav-sponsor-logo{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;margin-left:2px;padding-left:7px;border-left:1px solid rgba(49,67,92,.16);line-height:1}
+.pv-nav-sponsor-logo img{display:block!important;width:auto!important;height:auto!important;max-width:54px!important;max-height:18px!important;object-fit:contain!important}
+.pv-h-rail-item.is-active .pv-nav-sponsor-logo,
+.pv-h-rail-item:hover .pv-nav-sponsor-logo{border-left-color:rgba(255,255,255,.34)}
+.pv-h-identity-menu-link .pv-nav-sponsor-logo img{max-width:48px!important;max-height:16px!important}
+.pv-h-mobile-grid .pv-nav-sponsor-logo{margin-left:auto}
+
+.pv-sponsor-300x250{width:100%;max-width:300px;margin:0 auto 16px}
+.pv-sponsor-300x250>a{display:block;line-height:0}
+.pv-sponsor-300x250 img{display:block;width:300px;max-width:100%;height:auto;aspect-ratio:300/250;object-fit:cover;border-radius:12px}
+.pv-sponsor-ad-label{display:block;margin:0 0 6px;color:#7a8ba3;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;line-height:1.2}
+
+.pv-sponsor-skin-clicks{display:none}
+
+@media(min-width:1280px){
+  body.pv-sponsorship-active .pv-sponsor-skin-clicks{display:block}
+  body.pv-sponsorship-active .pv-sponsor-skin-wing{position:fixed;top:0;bottom:0;z-index:0;width:max(20px,calc((100vw - 1240px)/2));background:transparent;text-indent:-9999px;overflow:hidden}
+  body.pv-sponsorship-active .pv-sponsor-skin-wing--left{left:0}
+  body.pv-sponsorship-active .pv-sponsor-skin-wing--right{right:0}
+  body.pv-sponsorship-active .pv-header-v260,
+  body.pv-sponsorship-active .pv-inner-masthead-wrap,
+  body.pv-sponsorship-active .pv-inner-layout,
+  body.pv-sponsorship-active footer{position:relative;z-index:1}
+}
+
+@media(max-width:1279px){
+  body.pv-sponsorship-active{background-image:none!important}
+}
+
+@media(max-width:980px){
+  .pv-h-identity-menu-link .pv-nav-sponsor-logo{display:none}
+}
+
+@media(max-width:640px){
+  .pv-h-mobile-grid .pv-nav-sponsor-logo img{max-width:46px!important;max-height:16px!important}
+}
