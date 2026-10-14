@@ -220,6 +220,7 @@ function pv_sponsorship_body_classes( $classes ) {
     if ( pv_sponsorship_is_context() ) {
         $settings  = pv_sponsorship_settings();
         $classes[] = 'pv-sponsorship-active';
+        if ( ! empty( $settings['skin_url'] ) ) { $classes[] = 'pv-sponsorship-has-skin'; }
         if ( pv_sponsorship_is_preview() ) { $classes[] = 'pv-sponsorship-preview'; }
         $classes[] = 'pv-sponsorship-' . sanitize_html_class( $settings['target'] );
     }
@@ -243,6 +244,9 @@ function pv_sponsorship_enqueue_assets() {
 
     if ( pv_sponsorship_is_context() ) {
         $settings = pv_sponsorship_settings();
+        // A takeover must not silently load other brands' ad containers or impression pixels.
+        // Preserve analytics and publisher head code; suppress only known display inventory.
+        wp_add_inline_style( 'pv-sponsorship', 'body.pv-sponsorship-active .pv-inner-masthead-wrap,body.pv-sponsorship-active .pv-market-masthead-wrap{display:none!important;min-height:0!important;height:0!important;margin:0!important;padding:0!important}' );
         if ( ! empty( $settings['skin_url'] ) ) {
             $skin_url = esc_url_raw( $settings['skin_url'] );
             $css = 'body.pv-sponsorship-active{background-image:url(' . wp_json_encode( $skin_url ) . ')!important;background-position:50% 0!important;background-repeat:no-repeat!important;background-attachment:fixed!important;background-size:1920px auto!important;}';

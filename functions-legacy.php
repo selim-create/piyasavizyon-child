@@ -140,6 +140,8 @@ function pv_v7_footer_logo($type='pv') {
 }
 
 function pv_v7_ad($id, $label, $class='ad ad-728') {
+    // An active category takeover owns its inventory: never render network/house ad widgets.
+    if (function_exists('pv_sponsorship_is_context') && pv_sponsorship_is_context()) { return; }
     if (is_active_sidebar($id)) {
         echo '<div class="pv-ad-slot '.esc_attr($class).'">'; dynamic_sidebar($id); echo '</div>';
     } elseif ($id === 'pv_right_ad') {
@@ -149,6 +151,8 @@ function pv_v7_ad($id, $label, $class='ad ad-728') {
 }
 
 function pv_v7_gam_content_ad() {
+    // Do not create GPT slot elements inside a sponsored category or its stories.
+    if (function_exists('pv_sponsorship_is_context') && pv_sponsorship_is_context()) { return; }
     static $desktop_i = 1;
     static $mobile_i = 0;
 
@@ -895,6 +899,8 @@ function pv_v7_converter_links_widget() {
 }
 
 function pv_v7_sidebar_gam_ad($area, $label, $class, $fallback_id) {
+    // Sponsor 300x250 is emitted separately; generic sidebar GAM inventory stays off.
+    if (function_exists('pv_sponsorship_is_context') && pv_sponsorship_is_context()) { return; }
     if (is_active_sidebar($area)) {
         pv_v7_ad($area, $label, $class);
         return;
