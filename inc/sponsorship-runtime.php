@@ -225,7 +225,7 @@ function pv_sponsorship_enqueue_assets() {
         $settings = pv_sponsorship_settings();
         if ( ! empty( $settings['skin_url'] ) ) {
             $skin_url = esc_url_raw( $settings['skin_url'] );
-            $css = 'body.pv-sponsorship-active{background-image:url("' . esc_url( $skin_url ) . '")!important;background-position:50% 0!important;background-repeat:no-repeat!important;background-attachment:fixed!important;background-size:1920px auto!important;}';
+            $css = 'body.pv-sponsorship-active{background-image:url(' . wp_json_encode( $skin_url ) . ')!important;background-position:50% 0!important;background-repeat:no-repeat!important;background-attachment:fixed!important;background-size:1920px auto!important;}';
             wp_add_inline_style( 'pv-sponsorship', $css );
         }
     }
@@ -398,12 +398,15 @@ function pv_sponsorship_admin_panel() {
                 </div>
             </div>
             <div class="pvcc-system-list">
-                <div><span><?php esc_html_e( 'Menü logosu', 'piyasavizyon-v7' ); ?></span><strong>480×160 px @2x</strong></div>
+                <div><span><?php esc_html_e( 'Menü logosu', 'piyasavizyon-v7' ); ?></span><strong>480×160 px @2x · max 100 KB</strong></div>
+                <div><span><?php esc_html_e( 'Logo formatı', 'piyasavizyon-v7' ); ?></span><strong>SVG / şeffaf PNG / WebP</strong></div>
                 <div><span><?php esc_html_e( 'Giydirme master', 'piyasavizyon-v7' ); ?></span><strong>1920×1080 px</strong></div>
                 <div><span><?php esc_html_e( 'Merkez güvenli alan', 'piyasavizyon-v7' ); ?></span><strong>1240 px boş</strong></div>
+                <div><span><?php esc_html_e( 'Giydirme animasyon', 'piyasavizyon-v7' ); ?></span><strong>10–15 sn · max 3 loop · sessiz</strong></div>
+                <div><span><?php esc_html_e( 'Giydirme format / ağırlık', 'piyasavizyon-v7' ); ?></span><strong>Animated WebP ≤2.5 MB · GIF ≤4 MB</strong></div>
                 <div><span><?php esc_html_e( 'Display', 'piyasavizyon-v7' ); ?></span><strong>300×250 px</strong></div>
-                <div><span><?php esc_html_e( 'Animasyon', 'piyasavizyon-v7' ); ?></span><strong>GIF / animated WebP</strong></div>
-                <div><span><?php esc_html_e( 'Tracking', 'piyasavizyon-v7' ); ?></span><strong>GAM / 1×1 tags</strong></div>
+                <div><span><?php esc_html_e( '300×250 format / ağırlık', 'piyasavizyon-v7' ); ?></span><strong>PNG/JPG/WebP ≤300 KB · animasyon ≤1 MB</strong></div>
+                <div><span><?php esc_html_e( 'Tracking', 'piyasavizyon-v7' ); ?></span><strong>GAM / 1×1 tags · HTTPS</strong></div>
             </div>
             <div class="pvcc-note pvcc-note--dark">
                 <span class="dashicons dashicons-info-outline"></span>
