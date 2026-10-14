@@ -55,3 +55,76 @@ body.pv-sponsorship-preview.pv-sponsorship-active:not([data-pv-real-skin]){backg
  body.pv-sponsorship-active .pv-sponsor-mobile-content small{font-size:12px;color:#d4ccff}
  body.pv-sponsorship-active .pv-sponsor-300x250{margin-top:14px}
 }
+
+/* EXCLUSIVE TAKEOVER: preserve white cards; expose sponsored skin throughout the canvas. */
+html body.pv-sponsorship-active{
+  background-color:#ede9ff!important;
+}
+/* Native crypto pages, archives, and articles must not paint a solid page-wide veil. */
+html body.pv-sponsorship-active .site-wrapper,
+html body.pv-sponsorship-active .site-wrapper>.content,
+html body.pv-sponsorship-active .site-wrapper>.content.home,
+html body.pv-sponsorship-active .site-wrapper .container-wrap,
+html body.pv-sponsorship-active .site-wrapper .widebar,
+html body.pv-sponsorship-active .site-wrapper .singleWrapper,
+html body.pv-sponsorship-active .pv-inner-layout,
+html body.pv-sponsorship-active .pv-market-page-layout,
+html body.pv-sponsorship-active .pv-archive-layout,
+html body.pv-sponsorship-active .pv-single-layout,
+html body.pv-sponsorship-active .pv-inner-layout>aside.sidebar,
+html body.pv-sponsorship-active .sidebar-sticky-inner{
+  background:transparent!important;
+  background-color:transparent!important;
+  background-image:none!important;
+}
+/* Make the central column gently translucent without sacrificing readable card contrast.
+   The dark preview side wings remain decorative; a live skin stays visible behind content. */
+@media(min-width:1280px){
+  html body.pv-sponsorship-preview.pv-sponsorship-active{
+    background:linear-gradient(90deg,#24175c 0,#39319b calc((100% - 1240px)/2),rgba(57,49,155,.18) calc((100% - 1240px)/2),rgba(57,49,155,.18) calc((100% + 1240px)/2),#39319b calc((100% + 1240px)/2),#24175c 100%)!important;
+  }
+}
+/* Do not alter news/article/market widgets: they keep their own white backgrounds. */
+html body.pv-sponsorship-active .pv-inner-card,
+html body.pv-sponsorship-active .pv-archive-card,
+html body.pv-sponsorship-active .pv-single-card,
+html body.pv-sponsorship-active .pv-market-card,
+html body.pv-sponsorship-active .pv-crypto-list-content,
+html body.pv-sponsorship-active .pv-crypto-detail-content,
+html body.pv-sponsorship-active .sidebar .panel{
+  background-color:#fff!important;
+}
+/* Do not show any unrelated house/third-party slots in a sponsored context.
+   The first-party Staplex .pv-sponsor-300x250 and mobile skin are excluded. */
+html body.pv-sponsorship-active .pv-inner-masthead-wrap,
+html body.pv-sponsorship-active .pv-market-masthead-wrap,
+html body.pv-sponsorship-active .pv-ad-slot,
+html body.pv-sponsorship-active .pv-gam-ad,
+html body.pv-sponsorship-active .pv-pageskin,
+html body.pv-sponsorship-active .pv-credit-ad,
+html body.pv-sponsorship-active .pv-corp-adbar,
+html body.pv-sponsorship-active .ad-mobile-masthead,
+html body.pv-sponsorship-active .pv-mobile-sticky-ad,
+html body.pv-sponsorship-active .pv-footer-ad,
+html body.pv-sponsorship-active .footer-ad-v7,
+html body.pv-sponsorship-active .pv-ad-cta,
+html body.pv-sponsorship-active .sidebar [id^="div-gpt"],
+html body.pv-sponsorship-active .pv-entry-content>[id^="div-gpt"]{
+  display:none!important;
+  visibility:hidden!important;
+  min-height:0!important;
+  height:0!important;
+  margin:0!important;
+  padding:0!important;
+}
+/* Collapse the entire masthead area instead of leaving an empty advertising gap. */
+html body.pv-sponsorship-active .pv-inner-masthead-wrap{
+  display:none!important;
+}
+@media(max-width:767px){
+  /* Mobile has a dedicated takeover band rather than the desktop background skin. */
+  html body.pv-sponsorship-active{
+    background-image:none!important;
+    background-color:#f3f0ff!important;
+  }
+}
