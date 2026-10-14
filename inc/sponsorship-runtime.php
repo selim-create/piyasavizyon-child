@@ -72,9 +72,18 @@ function pv_sponsorship_defaults() {
         'click_url'        => '',
         'skin_url'         => '',
         'banner_300_url'   => '',
+        'mobile_skin_url'  => '',
         'banner_click_url' => '',
         'tracking_code'    => '',
     );
+}
+
+function pv_sponsorship_is_preview() {
+    return ! is_admin()
+        && current_user_can( 'manage_options' )
+        && isset( $_GET['pv_sponsor_preview'], $_GET['_pv_sponsor_nonce'] )
+        && (string) wp_unslash( $_GET['pv_sponsor_preview'] ) === '1'
+        && wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_pv_sponsor_nonce'] ) ), 'pv_sponsor_preview' );
 }
 
 function pv_sponsorship_settings() {
@@ -82,7 +91,13 @@ function pv_sponsorship_settings() {
     if ( ! is_array( $saved ) ) {
         $saved = array();
     }
-    return wp_parse_args( $saved, pv_sponsorship_defaults() );
+    $settings = wp_parse_args( $saved, pv_sponsorship_defaults() );
+    if ( pv_sponsorship_is_preview() ) {
+        $settings['enabled'] = 1;
+        $settings['target'] = 'crypto';
+        $settings['brand'] = 'Staplex';
+    }
+    return $settings;
 }
 
 function pv_sponsorship_is_enabled() {
@@ -183,7 +198,7 @@ function pv_sponsorship_menu_logo( $nav_label ) {
 
     $settings = pv_sponsorship_settings();
     $targets  = pv_sponsorship_targets();
-    if ( empty( $settings['logo_url'] ) || empty( $targets[ $settings['target'] ] ) ) {
+    if ( ( empty( $settings['logo_url'] ) && ! pv_sponsorship_is_preview() ) || empty( $targets[ $settings['target'] ] ) ) {
         return;
     }
 
@@ -194,6 +209,10 @@ function pv_sponsorship_menu_logo( $nav_label ) {
 
     $brand = trim( (string) $settings['brand'] );
     $title = $brand !== '' ? sprintf( '%s sponsorluğunda', $brand ) : 'Sponsorlu';
+    if ( pv_sponsorship_is_preview() && empty( $settings['logo_url'] ) ) {
+        echo '<span class="pv-nav-sponsor-logo pv-sponsor-demo-logo" title="' . esc_attr( $title ) . '">STAPLEX</span>';
+        return;
+    }
     echo '<span class="pv-nav-sponsor-logo" title="' . esc_attr( $title ) . '"><img src="' . esc_url( $settings['logo_url'] ) . '" alt="' . esc_attr( $brand ) . '" loading="eager" decoding="async"></span>';
 }
 
@@ -201,6 +220,7 @@ function pv_sponsorship_body_classes( $classes ) {
     if ( pv_sponsorship_is_context() ) {
         $settings  = pv_sponsorship_settings();
         $classes[] = 'pv-sponsorship-active';
+        if ( pv_sponsorship_is_preview() ) { $classes[] = 'pv-sponsorship-preview'; }
         $classes[] = 'pv-sponsorship-' . sanitize_html_class( $settings['target'] );
     }
 
@@ -228,6 +248,10 @@ function pv_sponsorship_enqueue_assets() {
             $css = 'body.pv-sponsorship-active{background-image:url(' . wp_json_encode( $skin_url ) . ')!important;background-position:50% 0!important;background-repeat:no-repeat!important;background-attachment:fixed!important;background-size:1920px auto!important;}';
             wp_add_inline_style( 'pv-sponsorship', $css );
         }
+        if ( ! empty( $settings['mobile_skin_url'] ) ) {
+            $mobile = esc_url_raw( $settings['mobile_skin_url'] );
+            wp_add_inline_style( 'pv-sponsorship', '@media(max-width:767px){body.pv-sponsorship-active .pv-sponsor-mobile-skin{background-image:url(' . wp_json_encode( $mobile ) . ')}}' );
+        }
     }
 }
 add_action( 'wp_enqueue_scripts', 'pv_sponsorship_enqueue_assets', 70 );
@@ -253,19 +277,38 @@ function pv_sponsorship_render_skin_click_targets() {
 }
 add_action( 'wp_body_open', 'pv_sponsorship_render_skin_click_targets', 25 );
 
+function pv_sponsorship_render_mobile_skin() {
+    if ( ! pv_sponsorship_is_context() ) { return; }
+    $settings = pv_sponsorship_settings();
+    if ( empty( $settings['mobile_skin_url'] ) && ! pv_sponsorship_is_preview() ) { return; }
+    echo '<section class="pv-sponsor-mobile-skin" aria-label="Sponsorlu mobil alan">';
+    echo '<div class="pv-sponsor-mobile-content"><span>SPONSORLU</span>';
+    if ( pv_sponsorship_is_preview() && empty( $settings['mobile_skin_url'] ) ) {
+        echo '<strong>STAPLEX</strong><small>Kripto Para sponsorlugu · Ornek gorunum</small>';
+    }
+    echo '</div></section>';
+}
+add_action( 'wp_footer', 'pv_sponsorship_render_preview_notice', 3 );
+function pv_sponsorship_render_preview_notice() {
+    if ( ! pv_sponsorship_is_preview() ) { return; }
+    echo '<div class="pv-sponsor-preview-ribbon">STAPLEX TEST ONIZLEMESI · Ziyaretcilere gorunmez · Takip kodlari calismaz</div>';
+}
+
 function pv_sponsorship_render_sidebar_ad() {
     if ( ! pv_sponsorship_is_context() ) {
         return false;
     }
 
     $settings = pv_sponsorship_settings();
-    if ( empty( $settings['banner_300_url'] ) ) {
+    if ( empty( $settings['banner_300_url'] ) && ! pv_sponsorship_is_preview() ) {
         return false;
     }
 
     $brand = trim( (string) $settings['brand'] );
     $alt   = $brand !== '' ? $brand . ' reklamı' : 'Sponsor reklamı';
-    $img   = '<img src="' . esc_url( $settings['banner_300_url'] ) . '" alt="' . esc_attr( $alt ) . '" width="300" height="250" loading="lazy" decoding="async">';
+    $img = ( pv_sponsorship_is_preview() && empty( $settings['banner_300_url'] ) )
+        ? '<div class="pv-sponsor-preview-creative"><b>STAPLEX</b><span>KRIPTO EKONOMISININ YENI YUZU</span><small>300 × 250 · Ornek kreatif</small></div>'
+        : '<img src="' . esc_url( $settings['banner_300_url'] ) . '" alt="' . esc_attr( $alt ) . '" width="300" height="250" loading="lazy" decoding="async">';
 
     echo '<div class="pv-sponsor-300x250">';
     echo '<span class="pv-sponsor-ad-label">Sponsorlu' . ( $brand !== '' ? ' · ' . esc_html( $brand ) : '' ) . '</span>';
@@ -281,7 +324,7 @@ function pv_sponsorship_render_sidebar_ad() {
 }
 
 function pv_sponsorship_render_tracking_code() {
-    if ( ! pv_sponsorship_is_context() ) {
+    if ( pv_sponsorship_is_preview() || ! pv_sponsorship_is_context() ) {
         return;
     }
 
@@ -317,6 +360,7 @@ function pv_sponsorship_save_settings() {
         'logo_url'         => isset( $_POST['pv_sponsor_logo_url'] ) ? esc_url_raw( wp_unslash( $_POST['pv_sponsor_logo_url'] ) ) : '',
         'click_url'        => isset( $_POST['pv_sponsor_click_url'] ) ? esc_url_raw( wp_unslash( $_POST['pv_sponsor_click_url'] ) ) : '',
         'skin_url'         => isset( $_POST['pv_sponsor_skin_url'] ) ? esc_url_raw( wp_unslash( $_POST['pv_sponsor_skin_url'] ) ) : '',
+        'mobile_skin_url'  => isset( $_POST['pv_sponsor_mobile_skin_url'] ) ? esc_url_raw( wp_unslash( $_POST['pv_sponsor_mobile_skin_url'] ) ) : '',
         'banner_300_url'   => isset( $_POST['pv_sponsor_banner_300_url'] ) ? esc_url_raw( wp_unslash( $_POST['pv_sponsor_banner_300_url'] ) ) : '',
         'banner_click_url' => isset( $_POST['pv_sponsor_banner_click_url'] ) ? esc_url_raw( wp_unslash( $_POST['pv_sponsor_banner_click_url'] ) ) : '',
         'tracking_code'    => isset( $_POST['pv_sponsor_tracking_code'] ) ? wp_unslash( $_POST['pv_sponsor_tracking_code'] ) : '',
@@ -345,6 +389,7 @@ function pv_sponsorship_admin_panel() {
         <div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Sponsorluk ayarları kaydedildi.', 'piyasavizyon-v7' ); ?></p></div>
     <?php endif; ?>
 
+    <p><a class="button button-secondary" target="_blank" rel="noopener noreferrer" href="<?php echo esc_url( wp_nonce_url( home_url( '/kriptoparalar/?pv_sponsor_preview=1' ), 'pv_sponsor_preview', '_pv_sponsor_nonce' ) ); ?>">Staplex kripto sayfasi onizle (yalnizca admin)</a></p>
     <div class="pvcc-grid pvcc-grid--2 pvcc-sponsorship-grid">
         <section class="pvcc-card">
             <div class="pvcc-card-head">
@@ -377,6 +422,7 @@ function pv_sponsorship_admin_panel() {
                 <label><span><?php esc_html_e( 'Menü logo URL', 'piyasavizyon-v7' ); ?></span><input type="url" name="pv_sponsor_logo_url" value="<?php echo esc_attr( $settings['logo_url'] ); ?>" placeholder="https://.../staplex-logo.webp"><small><?php esc_html_e( 'Şeffaf PNG/WebP önerilir. Menüde maksimum 54×18 px gösterilir.', 'piyasavizyon-v7' ); ?></small></label>
                 <label><span><?php esc_html_e( 'Ana tıklama URL', 'piyasavizyon-v7' ); ?></span><input type="url" name="pv_sponsor_click_url" value="<?php echo esc_attr( $settings['click_url'] ); ?>" placeholder="https://www.staplex..."></label>
                 <label><span><?php esc_html_e( 'Desktop giydirme URL', 'piyasavizyon-v7' ); ?></span><input type="url" name="pv_sponsor_skin_url" value="<?php echo esc_attr( $settings['skin_url'] ); ?>" placeholder="https://.../staplex-skin.webp"><small><?php esc_html_e( 'PNG/JPG/GIF/animated WebP. 1280 px altındaki ekranlarda gösterilmez.', 'piyasavizyon-v7' ); ?></small></label>
+                <label><span>Mobil giydirme (750×500 @2x)</span><input type="url" name="pv_sponsor_mobile_skin_url" value="<?php echo esc_attr( $settings['mobile_skin_url'] ); ?>" placeholder="https://.../staplex-mobile.webp"><small>Mobilde 375×250 marka bandında gösterilir. 767 px ve altında devreye girer.</small></label>
                 <label><span><?php esc_html_e( '300×250 kreatif URL', 'piyasavizyon-v7' ); ?></span><input type="url" name="pv_sponsor_banner_300_url" value="<?php echo esc_attr( $settings['banner_300_url'] ); ?>" placeholder="https://.../staplex-300x250.webp"></label>
                 <label><span><?php esc_html_e( '300×250 tıklama URL', 'piyasavizyon-v7' ); ?></span><input type="url" name="pv_sponsor_banner_click_url" value="<?php echo esc_attr( $settings['banner_click_url'] ); ?>" placeholder="https://www.staplex..."></label>
                 <label>
@@ -404,6 +450,7 @@ function pv_sponsorship_admin_panel() {
                 <div><span><?php esc_html_e( 'Merkez güvenli alan', 'piyasavizyon-v7' ); ?></span><strong>1240 px boş</strong></div>
                 <div><span><?php esc_html_e( 'Giydirme animasyon', 'piyasavizyon-v7' ); ?></span><strong>10–15 sn · max 3 loop · sessiz</strong></div>
                 <div><span><?php esc_html_e( 'Giydirme format / ağırlık', 'piyasavizyon-v7' ); ?></span><strong>Animated WebP ≤2.5 MB · GIF ≤4 MB</strong></div>
+                <div><span>Mobil giydirme</span><strong>750×500 px @2x</strong></div>
                 <div><span><?php esc_html_e( 'Display', 'piyasavizyon-v7' ); ?></span><strong>300×250 px</strong></div>
                 <div><span><?php esc_html_e( '300×250 format / ağırlık', 'piyasavizyon-v7' ); ?></span><strong>PNG/JPG/WebP ≤300 KB · animasyon ≤1 MB</strong></div>
                 <div><span><?php esc_html_e( 'Tracking', 'piyasavizyon-v7' ); ?></span><strong>GAM / 1×1 tags · HTTPS</strong></div>
