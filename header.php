@@ -135,6 +135,7 @@ $pv_nav_items = array(
             <a class="pv-h-identity-menu-link" href="<?php echo esc_url(home_url($pv_item['url'])); ?>">
               <?php echo pv_h_icon_svg($pv_item['icon']); ?>
               <span><?php echo esc_html($pv_item['label']); ?></span>
+              <?php if ( function_exists( 'pv_sponsorship_menu_logo' ) ) { pv_sponsorship_menu_logo( $pv_item['label'] ); } ?>
               <?php echo pv_h_icon_svg('chev'); ?>
             </a>
             <?php if (!empty($pv_item['subs'])) : ?>
@@ -191,6 +192,7 @@ $pv_nav_items = array(
             <a class="pv-h-rail-link" href="<?php echo esc_url(home_url($pv_item['url'])); ?>">
               <?php echo pv_h_icon_svg($pv_item['icon']); ?>
               <span><?php echo esc_html($pv_item['label']); ?></span>
+              <?php if ( function_exists( 'pv_sponsorship_menu_logo' ) ) { pv_sponsorship_menu_logo( $pv_item['label'] ); } ?>
               <?php echo pv_h_icon_svg('chev'); ?>
             </a>
             <?php if (!empty($pv_item['subs'])) : ?>
@@ -226,7 +228,7 @@ $pv_nav_items = array(
         <button type="submit">Ara</button>
       </form>
       <?php foreach ($pv_nav_items as $pv_item) : ?>
-        <a href="<?php echo esc_url(home_url($pv_item['url'])); ?>"><?php echo pv_h_icon_svg($pv_item['icon']); ?><?php echo esc_html($pv_item['label']); ?></a>
+        <a href="<?php echo esc_url(home_url($pv_item['url'])); ?>"><?php echo pv_h_icon_svg($pv_item['icon']); ?><span><?php echo esc_html($pv_item['label']); ?></span><?php if ( function_exists( 'pv_sponsorship_menu_logo' ) ) { pv_sponsorship_menu_logo( $pv_item['label'] ); } ?></a>
       <?php endforeach; ?>
     </div>
   </section>
